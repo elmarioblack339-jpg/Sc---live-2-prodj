@@ -9,6 +9,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -22,6 +27,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -67,6 +73,12 @@ private fun SCLiveConsole() {
     var clock by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
     var notice by remember { mutableStateOf("Selecciona CARGAR para abrir música del teléfono.") }
+    var showSplash by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        delay(2300)
+        showSplash = false
+    }
 
     DisposableEffect(player1, player2) {
         val listener1 = object : Player.Listener {
@@ -130,7 +142,9 @@ private fun SCLiveConsole() {
         }
     }
 
-    Surface(Modifier.fillMaxSize(), color = Back) {
+    if (showSplash) {
+        MysticSplash()
+    } else Surface(Modifier.fillMaxSize(), color = Back) {
         Column(Modifier.fillMaxSize().padding(10.dp)) {
             Row(
                 Modifier.fillMaxWidth().background(Color(0xFF101722), RoundedCornerShape(12.dp)).padding(horizontal = 14.dp, vertical = 8.dp),
@@ -241,6 +255,57 @@ private fun DeckPanel(
                 Text(if (playing) "PAUSA" else "PLAY")
             }
             OutlinedButton(onClick = onStop, enabled = loaded) { Text("STOP") }
+        }
+    }
+}
+
+@Composable
+private fun MysticSplash() {
+    val transition = rememberInfiniteTransition(label = "mystic-glow")
+    val glow by transition.animateFloat(
+        initialValue = 0.35f,
+        targetValue = 0.9f,
+        animationSpec = infiniteRepeatable(
+            tween(950, easing = FastOutSlowInEasing),
+            repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
+        ),
+        label = "glow"
+    )
+    val reveal by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = tween(1100, easing = FastOutSlowInEasing),
+        label = "reveal"
+    )
+    Box(Modifier.fillMaxSize().background(Color(0xFF03050B)), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier.size(230.dp).graphicsLayer {
+                scaleX = 0.82f + glow * 0.22f
+                scaleY = 0.82f + glow * 0.22f
+                alpha = glow * 0.24f
+            }.background(Color(0xFF2563EB), CircleShape)
+        )
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                "SC", color = Color(0xFF8BE9FF), fontSize = 94.sp,
+                fontWeight = FontWeight.Black,
+                modifier = Modifier.graphicsLayer {
+                    alpha = reveal
+                    scaleX = 0.72f + reveal * 0.28f
+                    scaleY = 0.72f + reveal * 0.28f
+                    shadowElevation = 26f * glow
+                }
+            )
+            Text(
+                "LIVE 2", color = Color.White, fontSize = 23.sp,
+                fontWeight = FontWeight.Bold, letterSpacing = 8.sp,
+                modifier = Modifier.graphicsLayer { alpha = reveal }
+            )
+            Spacer(Modifier.height(14.dp))
+            Text(
+                "PRO DJ SYSTEM", color = Color(0xFF9CA3AF), fontSize = 10.sp,
+                letterSpacing = 4.sp,
+                modifier = Modifier.graphicsLayer { alpha = reveal }
+            )
         }
     }
 }
