@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.sqrt
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -67,7 +68,10 @@ private fun SCLiveConsole() {
     var uri1 by remember { mutableStateOf<Uri?>(null) }
     var uri2 by remember { mutableStateOf<Uri?>(null) }
     var pendingTarget by remember { mutableIntStateOf(0) }
-    var locked by remember { mutableStateOf(false) }
+    var locked by remember { mutableStateOf(true) }
+    var crossfader by remember { mutableFloatStateOf(0.5f) }
+    var gain1 by remember { mutableFloatStateOf(1f) }
+    var gain2 by remember { mutableFloatStateOf(1f) }
     var showSettings by remember { mutableStateOf(false) }
     var use24h by remember { mutableStateOf(false) }
     var clock by remember { mutableStateOf("") }
@@ -95,6 +99,11 @@ private fun SCLiveConsole() {
             player1.release()
             player2.release()
         }
+    }
+
+    LaunchedEffect(gain1, gain2, crossfader) {
+        player1.volume = gain1 * sqrt((1f - crossfader).coerceIn(0f, 1f))
+        player2.volume = gain2 * sqrt(crossfader.coerceIn(0f, 1f))
     }
 
     LaunchedEffect(use24h) {
@@ -158,7 +167,10 @@ private fun SCLiveConsole() {
                     Text(date.replaceFirstChar { it.uppercase() }, color = Color.LightGray, fontSize = 10.sp)
                 }
                 Text("AUDIO LOCAL · OFFLINE", color = Green, fontSize = 10.sp)
-                IconButton(onClick = { locked = !locked }) {
+                IconButton(onClick = {
+                    locked = !locked
+                    (context as? MainActivity)?.requestedOrientation = if (locked) ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                }) {
                     Icon(if (locked) Icons.Default.Lock else Icons.Default.LockOpen, "Bloquear interfaz",
                         tint = if (locked) Amber else Color.White)
                 }
@@ -176,6 +188,28 @@ private fun SCLiveConsole() {
                     onLoad = { requestLoad(2) },
                     onPlay = { if (uri2 != null) { if (player2.isPlaying) player2.pause() else player2.play() } else notice = "Primero carga una canción en Deck 2." },
                     onStop = { player2.pause(); player2.seekTo(0) })
+            }
+            Spacer(Modifier.height(8.dp))
+            Column(Modifier.fillMaxWidth().background(Color(0xFF101722), RoundedCornerShape(12.dp)).padding(horizontal = 14.dp, vertical = 8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("MIXER", color = Cyan, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Spacer(Modifier.weight(1f))
+                    Text("DECK 1", color = Color.LightGray, fontSize = 10.sp)
+                    Spacer(Modifier.width(6.dp))
+                    Text("CROSSFADE", color = Color.White, fontSize = 10.sp)
+                    Spacer(Modifier.width(6.dp))
+                    Text("DECK 2", color = Color.LightGray, fontSize = 10.sp)
+                }
+                Slider(value = crossfader, onValueChange = { crossfader = it })
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("GANANCIA 1", color = Color.LightGray, fontSize = 9.sp)
+                    Slider(value = gain1, onValueChange = { gain1 = it }, modifier = Modifier.weight(1f))
+                    Text("${(gain1 * 100).toInt()}%", color = Color.White, fontSize = 10.sp)
+                    Spacer(Modifier.width(12.dp))
+                    Text("GANANCIA 2", color = Color.LightGray, fontSize = 9.sp)
+                    Slider(value = gain2, onValueChange = { gain2 = it }, modifier = Modifier.weight(1f))
+                    Text("${(gain2 * 100).toInt()}%", color = Color.White, fontSize = 10.sp)
+                }
             }
             Spacer(Modifier.height(8.dp))
             Text(notice, color = Color.LightGray, fontSize = 11.sp, modifier = Modifier.fillMaxWidth().background(Color(0xFF101722), RoundedCornerShape(8.dp)).padding(9.dp))
