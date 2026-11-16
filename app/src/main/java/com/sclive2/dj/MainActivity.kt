@@ -1,11 +1,15 @@
 package com.sclive2.dj
 
+import android.content.Context
+import android.content.pm.ActivityInfo
+import android.net.Uri
 import android.os.Bundle
+import android.provider.OpenableColumns
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,20 +17,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Wifi
-import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.TimeZone
 import kotlinx.coroutines.delay
 
 private val Back = Color(0xFF080B10)
@@ -39,24 +44,46 @@ private val Red = Color(0xFFEF4444)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         setContent { MaterialTheme(colorScheme = darkColorScheme()) { SCLiveConsole() } }
     }
 }
 
 @Composable
 private fun SCLiveConsole() {
+    val context = LocalContext.current
+    val player1 = remember { ExoPlayer.Builder(context).build() }
+    val player2 = remember { ExoPlayer.Builder(context).build() }
+    var playing1 by remember { mutableStateOf(false) }
+    var playing2 by remember { mutableStateOf(false) }
+    var track1 by remember { mutableStateOf("") }
+    var track2 by remember { mutableStateOf("") }
+    var uri1 by remember { mutableStateOf<Uri?>(null) }
+    var uri2 by remember { mutableStateOf<Uri?>(null) }
+    var pendingTarget by remember { mutableIntStateOf(0) }
     var locked by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var use24h by remember { mutableStateOf(false) }
-    var browserOpen by remember { mutableStateOf(false) }
-    var network by remember { mutableIntStateOf(0) } // UI placeholder: real Android connectivity check still to implement
-    var deck1 by remember { mutableStateOf("Deck 1 · Vacío") }
-    var deck2 by remember { mutableStateOf("Deck 2 · Vacío") }
-    var playing1 by remember { mutableStateOf(false) }
-    var playing2 by remember { mutableStateOf(false) }
     var clock by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
+    var notice by remember { mutableStateOf("Selecciona CARGAR para abrir música del teléfono.") }
+
+    DisposableEffect(player1, player2) {
+        val listener1 = object : Player.Listener {
+            override fun onIsPlayingChanged(isPlaying: Boolean) { playing1 = isPlaying }
+        }
+        val listener2 = object : Player.Listener {
+            override fun onIsPlayingChanged(isPlaying: Boolean) { playing2 = isPlaying }
+        }
+        player1.addListener(listener1)
+        player2.addListener(listener2)
+        onDispose {
+            player1.removeListener(listener1)
+            player2.removeListener(listener2)
+            player1.release()
+            player2.release()
+        }
+    }
 
     LaunchedEffect(use24h) {
         while (true) {
@@ -68,10 +95,45 @@ private fun SCLiveConsole() {
         }
     }
 
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            val target = pendingTarget
+            val isTargetPlaying = if (target == 1) player1.isPlaying else player2.isPlaying
+            if (target == 0 || isTargetPlaying) {
+                notice = "No se cargó: el deck seleccionado está reproduciendo."
+            } else {
+                try {
+                    context.contentResolver.takePersistableUriPermission(
+                        uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                } catch (_: SecurityException) { }
+                val title = displayName(context, uri)
+                val player = if (target == 1) player1 else player2
+                player.stop()
+                player.clearMediaItems()
+                player.setMediaItem(MediaItem.fromUri(uri))
+                player.prepare()
+                if (target == 1) { uri1 = uri; track1 = title }
+                else { uri2 = uri; track2 = title }
+                notice = "Cargada en Deck $target: $title"
+            }
+        }
+    }
+
+    fun requestLoad(preferred: Int) {
+        val target = chooseSafeDeck(preferred, playing1, playing2, uri1 == null, uri2 == null)
+        if (target == 0) {
+            notice = "Ambos decks están reproduciendo. Pausa uno antes de cargar otra pista."
+        } else {
+            pendingTarget = target
+            picker.launch(arrayOf("audio/*"))
+        }
+    }
+
     Surface(Modifier.fillMaxSize(), color = Back) {
         Column(Modifier.fillMaxSize().padding(10.dp)) {
             Row(
-                Modifier.fillMaxWidth().background(Color(0xFF101722), RoundedCornerShape(12.dp)).padding(horizontal = 14.dp, vertical = 9.dp),
+                Modifier.fillMaxWidth().background(Color(0xFF101722), RoundedCornerShape(12.dp)).padding(horizontal = 14.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("SC", color = Cyan, fontSize = 22.sp, fontWeight = FontWeight.Black)
@@ -81,13 +143,7 @@ private fun SCLiveConsole() {
                     Text(clock, color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
                     Text(date.replaceFirstChar { it.uppercase() }, color = Color.LightGray, fontSize = 10.sp)
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(if (network == 0) Icons.Default.Language else Icons.Default.Wifi, null,
-                        tint = when(network) { 1 -> Green; 2 -> Amber; else -> Color.Gray })
-                    Text(when(network) { 1 -> " EN LÍNEA"; 2 -> " SEÑAL REGULAR"; else -> " SIN CONEXIÓN" },
-                        color = when(network) { 1 -> Green; 2 -> Amber; else -> Color.Gray }, fontSize = 10.sp)
-                }
-                Spacer(Modifier.width(12.dp))
+                Text("AUDIO LOCAL · OFFLINE", color = Green, fontSize = 10.sp)
                 IconButton(onClick = { locked = !locked }) {
                     Icon(if (locked) Icons.Default.Lock else Icons.Default.LockOpen, "Bloquear interfaz",
                         tint = if (locked) Amber else Color.White)
@@ -98,29 +154,17 @@ private fun SCLiveConsole() {
             }
             Spacer(Modifier.height(10.dp))
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                DeckPanel("DECK 1", deck1, playing1, Modifier.weight(1f),
-                    onPlay = { if (deck1.contains("Vacío")) deck1 = "Deck 1 · Canción de prueba"; playing1 = !playing1 },
-                    onLoad = { loadIntoSafeDeck(1, playing1, playing2, deck1, deck2) { target ->
-                        if (target == 1) deck1 = "Deck 1 · Pista cargada (demo)" else deck2 = "Deck 2 · Pista cargada (demo)"
-                    } })
-                DeckPanel("DECK 2", deck2, playing2, Modifier.weight(1f),
-                    onPlay = { if (deck2.contains("Vacío")) deck2 = "Deck 2 · Canción de prueba"; playing2 = !playing2 },
-                    onLoad = { loadIntoSafeDeck(2, playing1, playing2, deck1, deck2) { target ->
-                        if (target == 1) deck1 = "Deck 1 · Pista cargada (demo)" else deck2 = "Deck 2 · Pista cargada (demo)"
-                    } })
+                DeckPanel("DECK 1", track1, playing1, uri1 != null, Modifier.weight(1f),
+                    onLoad = { requestLoad(1) },
+                    onPlay = { if (uri1 != null) { if (player1.isPlaying) player1.pause() else player1.play() } else notice = "Primero carga una canción en Deck 1." },
+                    onStop = { player1.pause(); player1.seekTo(0) })
+                DeckPanel("DECK 2", track2, playing2, uri2 != null, Modifier.weight(1f),
+                    onLoad = { requestLoad(2) },
+                    onPlay = { if (uri2 != null) { if (player2.isPlaying) player2.pause() else player2.play() } else notice = "Primero carga una canción en Deck 2." },
+                    onStop = { player2.pause(); player2.seekTo(0) })
             }
             Spacer(Modifier.height(8.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("BROWSER", color = Cyan, fontWeight = FontWeight.Bold)
-                Text("Doble pulsación: modo en línea", color = Color.LightGray, fontSize = 11.sp, modifier = Modifier.weight(1f))
-                Button(onClick = { browserOpen = !browserOpen }, colors = ButtonDefaults.buttonColors(containerColor = Panel)) {
-                    Text(if (browserOpen) "CERRAR BROWSER" else "ABRIR BROWSER")
-                }
-            }
-            if (browserOpen) {
-                Text("BROWSER ONLINE · Buscador y proveedor de música autorizada pendientes de integrar.",
-                    color = Amber, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
-            }
+            Text(notice, color = Color.LightGray, fontSize = 11.sp, modifier = Modifier.fillMaxWidth().background(Color(0xFF101722), RoundedCornerShape(8.dp)).padding(9.dp))
             if (locked) Text("INTERFAZ BLOQUEADA · La reproducción sigue habilitada", color = Green, fontSize = 10.sp)
         }
     }
@@ -137,13 +181,7 @@ private fun SCLiveConsole() {
                         Spacer(Modifier.width(12.dp))
                         RadioButton(selected = use24h, onClick = { use24h = true }); Text("24 horas")
                     }
-                    Text("Estado de red de demostración", fontSize = 12.sp)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(onClick = { network = 0 }) { Text("Sin red") }
-                        TextButton(onClick = { network = 2 }) { Text("Regular") }
-                        TextButton(onClick = { network = 1 }) { Text("Buena") }
-                    }
-                    Text("El indicador real se conectará al estado de red de Android en la siguiente fase.", fontSize = 11.sp)
+                    Text("Las canciones se abren desde el almacenamiento del teléfono y quedan disponibles sin internet.", fontSize = 12.sp)
                 }
             },
             confirmButton = { TextButton(onClick = { showSettings = false }) { Text("Listo") } }
@@ -151,30 +189,35 @@ private fun SCLiveConsole() {
     }
 }
 
-private fun loadIntoSafeDeck(
-    preferred: Int, p1: Boolean, p2: Boolean, d1: String, d2: String, apply: (Int) -> Unit
-) {
-    // Safety policy: never overwrite a playing deck. Prefer an empty deck, then a stopped/paused deck.
-    val empty1 = d1.contains("Vacío")
-    val empty2 = d2.contains("Vacío")
-    val target = when {
-        preferred == 1 && empty1 -> 1
-        preferred == 2 && empty2 -> 2
+private fun chooseSafeDeck(preferred: Int, p1: Boolean, p2: Boolean, empty1: Boolean, empty2: Boolean): Int {
+    return when {
+        empty1 && !p1 && preferred == 1 -> 1
+        empty2 && !p2 && preferred == 2 -> 2
         empty1 && !p1 -> 1
         empty2 && !p2 -> 2
-        !p1 && p2 -> 1
-        !p2 && p1 -> 2
+        preferred == 1 && !p1 -> 1
+        preferred == 2 && !p2 -> 2
         !p1 -> 1
         !p2 -> 2
         else -> 0
     }
-    if (target != 0) apply(target)
+}
+
+private fun displayName(context: Context, uri: Uri): String {
+    var name = uri.lastPathSegment ?: "Pista de audio"
+    context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+        if (cursor.moveToFirst()) {
+            val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            if (index >= 0) name = cursor.getString(index) ?: name
+        }
+    }
+    return name
 }
 
 @Composable
 private fun DeckPanel(
-    name: String, track: String, playing: Boolean, modifier: Modifier,
-    onPlay: () -> Unit, onLoad: () -> Unit
+    name: String, track: String, playing: Boolean, loaded: Boolean, modifier: Modifier,
+    onLoad: () -> Unit, onPlay: () -> Unit, onStop: () -> Unit
 ) {
     Column(modifier.fillMaxHeight().background(Panel, RoundedCornerShape(14.dp)).padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally) {
@@ -187,16 +230,17 @@ private fun DeckPanel(
         Spacer(Modifier.height(8.dp))
         Box(Modifier.weight(1f).fillMaxWidth().background(Color(0xFF0B1119), RoundedCornerShape(10.dp)),
             contentAlignment = Alignment.Center) {
-            Text("◎", color = Cyan, fontSize = 76.sp)
+            Text(if (playing) "♫" else "◎", color = Cyan, fontSize = 76.sp)
         }
         Spacer(Modifier.height(8.dp))
-        Text(track, color = Color.White, fontSize = 12.sp)
+        Text(if (loaded) track else "Deck vacío · carga una pista", color = Color.White, fontSize = 12.sp, maxLines = 1)
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = onLoad, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF263445))) { Text("CARGAR") }
             Button(onClick = onPlay, colors = ButtonDefaults.buttonColors(containerColor = if (playing) Red else Green)) {
                 Text(if (playing) "PAUSA" else "PLAY")
             }
+            OutlinedButton(onClick = onStop, enabled = loaded) { Text("STOP") }
         }
     }
 }
