@@ -63,6 +63,8 @@ private fun SCLiveConsole() {
     val player2 = remember { ExoPlayer.Builder(context).build() }
     var playing1 by remember { mutableStateOf(false) }
     var playing2 by remember { mutableStateOf(false) }
+    var progress1 by remember { mutableFloatStateOf(0f) }
+    var progress2 by remember { mutableFloatStateOf(0f) }
     var track1 by remember { mutableStateOf("") }
     var track2 by remember { mutableStateOf("") }
     var uri1 by remember { mutableStateOf<Uri?>(null) }
@@ -98,6 +100,14 @@ private fun SCLiveConsole() {
             player2.removeListener(listener2)
             player1.release()
             player2.release()
+        }
+    }
+
+    LaunchedEffect(player1, player2) {
+        while (true) {
+            progress1 = if (player1.duration > 0) (player1.currentPosition.toFloat() / player1.duration).coerceIn(0f, 1f) else 0f
+            progress2 = if (player2.duration > 0) (player2.currentPosition.toFloat() / player2.duration).coerceIn(0f, 1f) else 0f
+            delay(250)
         }
     }
 
@@ -184,12 +194,12 @@ private fun SCLiveConsole() {
                     onLoad = { requestLoad(1) },
                     onPlay = { if (uri1 != null) { if (player1.isPlaying) player1.pause() else player1.play() } else notice = "Primero carga una canción en Deck 1." },
                     onStop = { player1.pause(); player1.seekTo(0) },
-                    onCue = { player1.seekTo(0) }, onSync = { player1.setPlaybackSpeed(1f) })
+                    onCue = { player1.seekTo(0) }, onSync = { player1.setPlaybackSpeed(1f) },\n                    progress = progress1, onSeek = { player1.seekTo((player1.duration.coerceAtLeast(0L) * it).toLong()) })
                 DeckPanel("DECK 2", track2, playing2, uri2 != null, Modifier.weight(1f),
                     onLoad = { requestLoad(2) },
                     onPlay = { if (uri2 != null) { if (player2.isPlaying) player2.pause() else player2.play() } else notice = "Primero carga una canción en Deck 2." },
                     onStop = { player2.pause(); player2.seekTo(0) },
-                    onCue = { player2.seekTo(0) }, onSync = { player2.setPlaybackSpeed(1f) })
+                    onCue = { player2.seekTo(0) }, onSync = { player2.setPlaybackSpeed(1f) },\n                    progress = progress2, onSeek = { player2.seekTo((player2.duration.coerceAtLeast(0L) * it).toLong()) })
             }
             Spacer(Modifier.height(8.dp))
             Column(Modifier.fillMaxWidth().background(Color(0xFF101722), RoundedCornerShape(12.dp)).padding(horizontal = 14.dp, vertical = 8.dp)) {
@@ -251,6 +261,10 @@ private fun chooseSafeDeck(preferred: Int, p1: Boolean, p2: Boolean, empty1: Boo
         !p2 -> 2
         else -> 0
     }
+}
+
+private fun formatPlayerTime(progress: Float): String {
+    return String.format(Locale.US, "%02d:%02d", (progress * 3600).toInt() / 60, (progress * 3600).toInt() % 60)
 }
 
 private fun displayName(context: Context, uri: Uri): String {
