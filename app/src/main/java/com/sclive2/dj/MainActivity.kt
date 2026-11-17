@@ -183,11 +183,13 @@ private fun SCLiveConsole() {
                 DeckPanel("DECK 1", track1, playing1, uri1 != null, Modifier.weight(1f),
                     onLoad = { requestLoad(1) },
                     onPlay = { if (uri1 != null) { if (player1.isPlaying) player1.pause() else player1.play() } else notice = "Primero carga una canción en Deck 1." },
-                    onStop = { player1.pause(); player1.seekTo(0) })
+                    onStop = { player1.pause(); player1.seekTo(0) },
+                    onCue = { player1.seekTo(0) }, onSync = { player1.setPlaybackSpeed(1f) })
                 DeckPanel("DECK 2", track2, playing2, uri2 != null, Modifier.weight(1f),
                     onLoad = { requestLoad(2) },
                     onPlay = { if (uri2 != null) { if (player2.isPlaying) player2.pause() else player2.play() } else notice = "Primero carga una canción en Deck 2." },
-                    onStop = { player2.pause(); player2.seekTo(0) })
+                    onStop = { player2.pause(); player2.seekTo(0) },
+                    onCue = { player2.seekTo(0) }, onSync = { player2.setPlaybackSpeed(1f) })
             }
             Spacer(Modifier.height(8.dp))
             Column(Modifier.fillMaxWidth().background(Color(0xFF101722), RoundedCornerShape(12.dp)).padding(horizontal = 14.dp, vertical = 8.dp)) {
@@ -265,7 +267,8 @@ private fun displayName(context: Context, uri: Uri): String {
 @Composable
 private fun DeckPanel(
     name: String, track: String, playing: Boolean, loaded: Boolean, modifier: Modifier,
-    onLoad: () -> Unit, onPlay: () -> Unit, onStop: () -> Unit
+    onLoad: () -> Unit, onPlay: () -> Unit, onStop: () -> Unit,
+    onCue: () -> Unit, onSync: () -> Unit
 ) {
     Column(modifier.fillMaxHeight().background(Panel, RoundedCornerShape(14.dp)).padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally) {
@@ -278,7 +281,24 @@ private fun DeckPanel(
         Spacer(Modifier.height(8.dp))
         Box(Modifier.weight(1f).fillMaxWidth().background(Color(0xFF0B1119), RoundedCornerShape(10.dp)),
             contentAlignment = Alignment.Center) {
-            Text(if (playing) "♫" else "◎", color = Cyan, fontSize = 76.sp)
+            val spin = rememberInfiniteTransition(label = "vinyl-$name")
+            val angle by spin.animateFloat(
+                initialValue = 0f, targetValue = 360f,
+                animationSpec = infiniteRepeatable(tween(1800), repeatMode = androidx.compose.animation.core.RepeatMode.Restart),
+                label = "platter-rotation"
+            )
+            Box(Modifier.size(190.dp).graphicsLayer { rotationZ = if (playing) angle else 0f }
+                .background(Color(0xFF05070B), CircleShape)) {
+                Box(Modifier.fillMaxSize().padding(5.dp).background(Color(0xFF171D27), CircleShape)) {
+                    Box(Modifier.fillMaxSize().padding(4.dp).background(Color(0xFF090D14), CircleShape)) {
+                        Box(Modifier.align(Alignment.Center).size(62.dp).background(Color(0xFF123C59), CircleShape),
+                            contentAlignment = Alignment.Center) {
+                            Text("SC", color = Color(0xFF8BE9FF), fontSize = 20.sp, fontWeight = FontWeight.Black)
+                        }
+                    }
+                }
+                Box(Modifier.align(Alignment.Center).size(7.dp).background(Color.LightGray, CircleShape))
+            }
         }
         Spacer(Modifier.height(8.dp))
         Text(if (loaded) track else "Deck vacío · carga una pista", color = Color.White, fontSize = 12.sp, maxLines = 1)
@@ -289,6 +309,11 @@ private fun DeckPanel(
                 Text(if (playing) "PAUSA" else "PLAY")
             }
             OutlinedButton(onClick = onStop, enabled = loaded) { Text("STOP") }
+        }
+        Spacer(Modifier.height(5.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+            OutlinedButton(onClick = onCue, enabled = loaded, contentPadding = PaddingValues(horizontal = 13.dp, vertical = 3.dp)) { Text("CUE") }
+            OutlinedButton(onClick = onSync, enabled = loaded, contentPadding = PaddingValues(horizontal = 13.dp, vertical = 3.dp)) { Text("SYNC · 1.0×") }
         }
     }
 }
