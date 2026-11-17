@@ -2,11 +2,15 @@ package com.sclive2.dj
 
 import android.Manifest
 import android.content.Intent
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.IntentFilter
 import android.provider.Settings
 import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.BatteryManager
 import android.provider.MediaStore
 import java.io.ByteArrayInputStream
 import android.view.View
@@ -44,6 +48,8 @@ class MainActivity : ComponentActivity() {
     private var browserWebView: WebView? = null
     private var browserTargetDeck = 0
     private var networkLabel: TextView? = null
+    private var batteryLabel: TextView? = null
+    private var batteryReceiver: BroadcastReceiver? = null
     private val uiHandler = Handler(Looper.getMainLooper())
     private val networkUpdater = object : Runnable {
         override fun run() {
@@ -217,6 +223,32 @@ class MainActivity : ComponentActivity() {
         top.addView(title, LinearLayout.LayoutParams(0, dp(42), 1f))
         networkLabel = TextView(this).apply { textSize = 11f; setPadding(dp(4), 0, dp(4), 0) }
         top.addView(networkLabel)
+        batteryLabel = TextView(this).apply {
+            text = "🔋 --%"
+            setTextColor(Color.rgb(110, 230, 145))
+            textSize = 12f
+            typeface = Typeface.DEFAULT_BOLD
+            setPadding(dp(6), 0, dp(8), 0)
+        }
+        top.addView(batteryLabel)
+        batteryReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action != Intent.ACTION_BATTERY_CHANGED) return
+                val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+                val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+                if (level >= 0 && scale > 0) {
+                    val percent = (level * 100f / scale).toInt().coerceIn(0, 100)
+                    batteryLabel?.text = "🔋 $percent%"
+                    batteryLabel?.setTextColor(when {
+                        percent <= 15 -> Color.rgb(245, 75, 75)
+                        percent <= 30 -> Color.rgb(245, 190, 65)
+                        else -> Color.rgb(110, 230, 145)
+                    })
+                }
+            }
+        }
+        val stickyBattery = registerReceiver(batteryReceiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        stickyBattery?.let { batteryReceiver?.onReceive(this, it) }
         root.addView(top)
         val actions = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         addBrowserButton(actions, "← ATRÁS", {
@@ -246,6 +278,9 @@ class MainActivity : ComponentActivity() {
         dialog.setContentView(root)
         dialog.setOnDismissListener {
             uiHandler.removeCallbacks(networkUpdater)
+            batteryReceiver?.let { try { unregisterReceiver(it) } catch (_: Exception) { } }
+            batteryReceiver = null
+            batteryLabel = null
             browser.stopLoading()
             browser.destroy()
             browserWebView = null
