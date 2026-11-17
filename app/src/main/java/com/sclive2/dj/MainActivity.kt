@@ -17,6 +17,21 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.app.Dialog
+import android.graphics.Color
+import android.graphics.Typeface
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.wifi.WifiManager
+import android.os.Handler
+import android.os.Looper
+import android.view.Gravity
+import android.view.WindowManager
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.database.Cursor
+import android.provider.OpenableColumns
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import org.json.JSONArray
@@ -25,6 +40,37 @@ import org.json.JSONObject
 class MainActivity : ComponentActivity() {
     private lateinit var webView: WebView
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
+    private var browserDialog: Dialog? = null
+    private var browserWebView: WebView? = null
+    private var browserTargetDeck = 0
+    private var networkLabel: TextView? = null
+    private val uiHandler = Handler(Looper.getMainLooper())
+    private val networkUpdater = object : Runnable {
+        override fun run() {
+            networkLabel?.let { label ->
+                val state = networkState()
+                label.text = state.first
+                label.setTextColor(state.second)
+            }
+            if (browserDialog?.isShowing == true) uiHandler.postDelayed(this, 2000)
+        }
+    }
+
+    private val browserAudioPicker = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val uri = if (result.resultCode == RESULT_OK) result.data?.data else null
+        if (uri == null) return@registerForActivityResult
+        try { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (_: Exception) { }
+        val title = try {
+            contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME)) else null
+            } ?: "Audio seleccionado"
+        } catch (_: Exception) { "Audio seleccionado" }
+        browserDialog?.dismiss()
+        val js = "window.loadNativeTrack && window.loadNativeTrack({uri:${JSONObject.quote(uri.toString())},title:${JSONObject.quote(title)}},$browserTargetDeck);"
+        webView.post { webView.evaluateJavascript(js, null) }
+    }
 
     private fun audioPermission(): String =
         if (android.os.Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_AUDIO
@@ -121,8 +167,128 @@ class MainActivity : ComponentActivity() {
             "https://sc-audio.local/audio?uri=" + Uri.encode(uriText)
 
         @JavascriptInterface fun openWifiSettings() { runOnUiThread { try { if (android.os.Build.VERSION.SDK_INT >= 29) startActivity(Intent(Settings.Panel.ACTION_WIFI)) else startActivity(Intent(Settings.ACTION_WIFI_SETTINGS)) } catch (_: Exception) { startActivity(Intent(Settings.ACTION_WIFI_SETTINGS)) } } }
-        @JavascriptInterface fun openOnlineBrowser() { runOnUiThread { try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/search?q=descargar+musica"))) } catch (_: Exception) { } } }
+        @JavascriptInterface fun openOnlineBrowser() { runOnUiThread { showOnlineBrowser() } }
+        @JavascriptInterface fun chooseBrowserAudio(deck: Int) { runOnUiThread { openBrowserAudioPicker(deck.coerceIn(0, 1)) } }
         @JavascriptInterface fun exitApp() { runOnUiThread { finish() } }
+    }
+
+
+    private fun openBrowserAudioPicker(deck: Int) {
+        browserTargetDeck = deck
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "audio/*"
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+        }
+        try { browserAudioPicker.launch(intent) } catch (_: Exception) { }
+    }
+
+    private fun addBrowserButton(row: LinearLayout, label: String, action: () -> Unit, accent: Int = Color.rgb(48, 52, 61)) {
+        val button = Button(this).apply {
+            text = label
+            isAllCaps = false
+            setTextColor(Color.WHITE)
+            textSize = 12f
+            setBackgroundColor(accent)
+            setOnClickListener { action() }
+        }
+        row.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(3), dp(3), dp(3), dp(3)) })
+    }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
+
+    private fun showOnlineBrowser() {
+        if (browserDialog?.isShowing == true) return
+        val dialog = Dialog(this)
+        browserDialog = dialog
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(Color.rgb(12, 13, 16))
+            setPadding(dp(6), dp(5), dp(6), dp(5))
+        }
+        val top = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        val title = TextView(this).apply {
+            text = "GOOGLE · SC LIVE 2"
+            setTextColor(Color.WHITE)
+            textSize = 14f
+            typeface = Typeface.DEFAULT_BOLD
+            setPadding(dp(8), 0, dp(5), 0)
+        }
+        top.addView(title, LinearLayout.LayoutParams(0, dp(42), 1f))
+        networkLabel = TextView(this).apply { textSize = 11f; setPadding(dp(4), 0, dp(4), 0) }
+        top.addView(networkLabel)
+        root.addView(top)
+        val actions = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        addBrowserButton(actions, "← ATRÁS", {
+            val current = browserWebView
+            if (current?.canGoBack() == true) current.goBack() else dialog.dismiss()
+        })
+        addBrowserButton(actions, "D1 · CARGAR", { openBrowserAudioPicker(0) }, Color.rgb(28, 83, 62))
+        addBrowserButton(actions, "D2 · CARGAR", { openBrowserAudioPicker(1) }, Color.rgb(28, 83, 62))
+        addBrowserButton(actions, "BIBLIOTECA", {
+            dialog.dismiss()
+            webView.evaluateJavascript("window.openLibrary && window.openLibrary(0);", null)
+        })
+        addBrowserButton(actions, "CERRAR", { dialog.dismiss() }, Color.rgb(105, 39, 43))
+        root.addView(actions)
+        val browser = WebView(this).apply {
+            setBackgroundColor(Color.rgb(17, 18, 22))
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+            settings.loadsImagesAutomatically = true
+            settings.javaScriptCanOpenWindowsAutomatically = true
+            settings.mediaPlaybackRequiresUserGesture = true
+            webViewClient = WebViewClient()
+            webChromeClient = WebChromeClient()
+        }
+        browserWebView = browser
+        root.addView(browser, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+        dialog.setContentView(root)
+        dialog.setOnDismissListener {
+            uiHandler.removeCallbacks(networkUpdater)
+            browser.stopLoading()
+            browser.destroy()
+            browserWebView = null
+            networkLabel = null
+            browserDialog = null
+        }
+        dialog.show()
+        dialog.window?.apply {
+            setBackgroundDrawableResource(android.R.color.transparent)
+            setLayout(WindowManager.LayoutParams.MATCH_PARENT, (resources.displayMetrics.heightPixels * 0.62f).toInt())
+            setGravity(Gravity.BOTTOM)
+            setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        }
+        browser.loadUrl("https://www.google.com/")
+        uiHandler.post(networkUpdater)
+    }
+
+    private fun networkState(): Pair<String, Int> {
+        val cm = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = cm.activeNetwork
+        val caps = network?.let { cm.getNetworkCapabilities(it) }
+        val connected = caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+        val validated = caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) == true
+        if (!connected) return "SIN CONEXIÓN" to Color.LTGRAY
+        if (caps?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true) {
+            @Suppress("DEPRECATION")
+            val rssi = (applicationContext.getSystemService(WIFI_SERVICE) as WifiManager).connectionInfo.rssi
+            val bars = when {
+                rssi >= -60 -> "▮▮▮▮"
+                rssi >= -70 -> "▮▮▮"
+                rssi >= -80 -> "▮▮"
+                rssi > -100 -> "▮"
+                else -> "—"
+            }
+            val color = if (!validated || rssi < -80) Color.rgb(235, 75, 68) else if (rssi < -70) Color.rgb(242, 190, 55) else Color.rgb(68, 205, 115)
+            return "WIFI $bars" to color
+        }
+        if (caps?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true) {
+            return (if (validated) "DATOS MÓVILES ▮▮▮" else "DATOS · SIN INTERNET") to
+                (if (validated) Color.rgb(68, 205, 115) else Color.rgb(235, 75, 68))
+        }
+        return (if (validated) "INTERNET ACTIVO" else "RED LIMITADA") to
+            (if (validated) Color.rgb(68, 205, 115) else Color.rgb(242, 190, 55))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -229,6 +395,8 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         filePathCallback?.onReceiveValue(null)
         filePathCallback = null
+        browserDialog?.dismiss()
+        uiHandler.removeCallbacks(networkUpdater)
         webView.stopLoading()
         webView.destroy()
         super.onDestroy()
