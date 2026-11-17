@@ -4,6 +4,10 @@ import android.Manifest
 import android.content.Intent
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.ContentValues
+import android.os.PowerManager
+import android.os.SystemClock
+import android.util.Base64
 import android.content.IntentFilter
 import android.provider.Settings
 import android.app.AlertDialog
@@ -50,6 +54,8 @@ class MainActivity : ComponentActivity() {
     private var networkLabel: TextView? = null
     private var batteryLabel: TextView? = null
     private var batteryReceiver: BroadcastReceiver? = null
+    private var lastCpuTime = android.os.Process.getElapsedCpuTime()
+    private var lastCpuWall = SystemClock.elapsedRealtime()
     private val uiHandler = Handler(Looper.getMainLooper())
     private val networkUpdater = object : Runnable {
         override fun run() {
@@ -171,6 +177,44 @@ class MainActivity : ComponentActivity() {
         @JavascriptInterface
         fun getPlayableUrl(uriText: String): String =
             "https://sc-audio.local/audio?uri=" + Uri.encode(uriText)
+
+
+        @JavascriptInterface
+        fun saveRecording(base64Audio: String, fileName: String): Boolean {
+            return try {
+                val bytes = Base64.decode(base64Audio, Base64.DEFAULT)
+                val values = ContentValues().apply {
+                    put(MediaStore.Audio.Media.DISPLAY_NAME, fileName.replace(Regex("[^A-Za-z0-9._-]"), "_"))
+                    put(MediaStore.Audio.Media.MIME_TYPE, "audio/webm")
+                    if (android.os.Build.VERSION.SDK_INT >= 29) put(MediaStore.Audio.Media.RELATIVE_PATH, "Music/SC LIVE 2")
+                }
+                val uri = contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values) ?: return false
+                contentResolver.openOutputStream(uri)?.use { it.write(bytes) } ?: return false
+                true
+            } catch (_: Exception) { false }
+        }
+
+        @JavascriptInterface
+        fun getDeviceStats(): String {
+            val nowCpu = android.os.Process.getElapsedCpuTime()
+            val nowWall = SystemClock.elapsedRealtime()
+            val elapsedCpu = (nowCpu - lastCpuTime).coerceAtLeast(0)
+            val elapsedWall = (nowWall - lastCpuWall).coerceAtLeast(1)
+            lastCpuTime = nowCpu
+            lastCpuWall = nowWall
+            val cores = Runtime.getRuntime().availableProcessors().coerceAtLeast(1)
+            val cpu = ((elapsedCpu.toDouble() / elapsedWall / cores) * 100.0).toInt().coerceIn(0, 100)
+            val thermal = if (android.os.Build.VERSION.SDK_INT >= 29) {
+                val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+                when (pm.currentThermalStatus) {
+                    PowerManager.THERMAL_STATUS_CRITICAL, PowerManager.THERMAL_STATUS_EMERGENCY, PowerManager.THERMAL_STATUS_SHUTDOWN -> "CRÍTICA"
+                    PowerManager.THERMAL_STATUS_SEVERE -> "ALTA"
+                    PowerManager.THERMAL_STATUS_MODERATE -> "MODERADA"
+                    else -> "NORMAL"
+                }
+            } else "No disponible en esta versión de Android"
+            return JSONObject().put("cpu", cpu).put("thermal", thermal).toString()
+        }
 
         @JavascriptInterface fun openWifiSettings() { runOnUiThread { try { if (android.os.Build.VERSION.SDK_INT >= 29) startActivity(Intent(Settings.Panel.ACTION_WIFI)) else startActivity(Intent(Settings.ACTION_WIFI_SETTINGS)) } catch (_: Exception) { startActivity(Intent(Settings.ACTION_WIFI_SETTINGS)) } } }
         @JavascriptInterface fun openOnlineBrowser() { runOnUiThread { showOnlineBrowser() } }
