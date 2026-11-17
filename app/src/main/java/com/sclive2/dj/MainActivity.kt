@@ -6,12 +6,13 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Base64
+import java.io.ByteArrayInputStream
 import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
@@ -114,24 +115,8 @@ class MainActivity : ComponentActivity() {
         }
 
         @JavascriptInterface
-        fun loadTrack(uriText: String, name: String, callbackId: String, deckIndex: Int) {
-            val uri = try { Uri.parse(uriText) } catch (_: Exception) { return }
-            if (uri.scheme != "content") return
-            Thread {
-                try {
-                    val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return@Thread
-                    val encoded = Base64.encodeToString(bytes, Base64.NO_WRAP)
-                    val js = "window.onNativeAudioData && window.onNativeAudioData(" +
-                        JSONObject.quote(callbackId) + "," + JSONObject.quote(name) + "," +
-                        JSONObject.quote(encoded) + "," + deckIndex.coerceIn(0, 1) + ");"
-                    webView.post { webView.evaluateJavascript(js, null) }
-                } catch (_: Exception) {
-                    webView.post {
-                        webView.evaluateJavascript("window.SCNativeLoadError && window.SCNativeLoadError();", null)
-                    }
-                }
-            }.start()
-        }
+        fun getPlayableUrl(uriText: String): String =
+            "https://sc-audio.local/audio?uri=" + Uri.encode(uriText)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -160,6 +145,28 @@ class MainActivity : ComponentActivity() {
             settings.setSupportZoom(false)
             addJavascriptInterface(AudioBridge(), "NativeAudio")
             webViewClient = object : WebViewClient() {
+                override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
+                    val url = request?.url ?: return null
+                    if (url.host == "sc-audio.local") {
+                        val uri = try { Uri.parse(url.getQueryParameter("uri") ?: return null) } catch (_: Exception) { return null }
+                        if (uri.scheme != "content") {
+                            return WebResourceResponse("text/plain", "UTF-8", 403, "Forbidden", emptyMap(), ByteArrayInputStream(ByteArray(0)))
+                        }
+                        return try {
+                            val stream = contentResolver.openInputStream(uri)
+                                ?: return WebResourceResponse("text/plain", "UTF-8", 404, "Not Found", emptyMap(), ByteArrayInputStream(ByteArray(0)))
+                            val mime = contentResolver.getType(uri) ?: "audio/mpeg"
+                            WebResourceResponse(mime, null, 200, "OK", mapOf(
+                                "Access-Control-Allow-Origin" to "*",
+                                "Cache-Control" to "no-store"
+                            ), stream)
+                        } catch (_: Exception) {
+                            WebResourceResponse("text/plain", "UTF-8", 404, "Not Found", emptyMap(), ByteArrayInputStream(ByteArray(0)))
+                        }
+                    }
+                    return super.shouldInterceptRequest(view, request)
+                }
+
                 override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                     val url = request?.url?.toString() ?: return false
                     return !url.startsWith("file:///android_asset/") &&
