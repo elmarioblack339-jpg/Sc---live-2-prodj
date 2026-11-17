@@ -218,10 +218,24 @@ class MainActivity : ComponentActivity() {
 
         @JavascriptInterface fun openWifiSettings() { runOnUiThread { try { if (android.os.Build.VERSION.SDK_INT >= 29) startActivity(Intent(Settings.Panel.ACTION_WIFI)) else startActivity(Intent(Settings.ACTION_WIFI_SETTINGS)) } catch (_: Exception) { startActivity(Intent(Settings.ACTION_WIFI_SETTINGS)) } } }
         @JavascriptInterface fun openOnlineBrowser() { runOnUiThread { showOnlineBrowser() } }
+        @JavascriptInterface fun refreshOnlineBrowser() { runOnUiThread { refreshOnlineBrowserScreen() } }
         @JavascriptInterface fun chooseBrowserAudio(deck: Int) { runOnUiThread { openBrowserAudioPicker(deck.coerceIn(0, 1)) } }
         @JavascriptInterface fun exitApp() { runOnUiThread { finish() } }
     }
 
+
+    private fun refreshOnlineBrowserScreen() {
+        val browser = browserWebView
+        if (browserDialog?.isShowing != true || browser == null) {
+            showOnlineBrowser()
+            return
+        }
+        browser.animate().cancel()
+        browser.animate().alpha(0.35f).setDuration(90).withEndAction {
+            browser.animate().alpha(1f).setDuration(150).start()
+        }.start()
+        browser.reload()
+    }
 
     private fun openBrowserAudioPicker(deck: Int) {
         browserTargetDeck = deck
