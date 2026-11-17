@@ -48,6 +48,14 @@ body{margin:0;background:#f3f4f6;font-family:"Barlow Condensed","Arial Narrow",s
 .mt i{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(0deg,#22e57f 0 55%,#ffb02e 75%,#ff4655)}
 .zn{display:none;align-items:center;justify-content:center;border:3px dashed #2f7bff;background:rgba(47,123,255,.18);color:#fff;font-size:26px;font-weight:700;z-index:9;border-radius:8px}
 canvas{display:block;width:100%;height:100%;background:#000}
+#splash{position:fixed;inset:0;z-index:300;background:radial-gradient(ellipse at 50% 48%,#111b34 0%,#050609 55%,#000 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:Arial,sans-serif;animation:splashFade .7s ease 1.9s forwards}
+#splashLogo{width:min(38vw,220px);height:auto;filter:drop-shadow(0 0 14px #327dff) drop-shadow(0 0 30px #6a36ff);animation:logoReveal 1.5s ease both}
+#splashTitle{margin-top:16px;font-size:clamp(18px,4vw,30px);font-weight:800;letter-spacing:.2em;text-shadow:0 0 14px #397dff;opacity:0;animation:titleReveal .8s ease .7s forwards}
+#splashSub{margin-top:8px;font-size:clamp(9px,1.8vw,13px);letter-spacing:.32em;color:#a8b9e8;opacity:0;animation:titleReveal .8s ease 1s forwards}
+@keyframes logoReveal{from{opacity:0;transform:scale(.72) rotate(-8deg);filter:brightness(0) drop-shadow(0 0 0 #327dff)}to{opacity:1;transform:scale(1) rotate(0);filter:drop-shadow(0 0 14px #327dff) drop-shadow(0 0 30px #6a36ff)}}
+@keyframes titleReveal{to{opacity:1}}
+@keyframes splashFade{to{opacity:0;visibility:hidden;pointer-events:none}}
+
 #appTools{position:fixed;right:8px;top:4px;z-index:120;display:flex;gap:6px;align-items:center;font:12px Arial,sans-serif;color:#fff}
 #localClock,#lockUi{background:#17243b;color:#fff;border:1px solid #397cff;border-radius:7px;padding:6px 9px;font-weight:700}
 #lockUi{cursor:pointer}.ui-locked .kn,.ui-locked .tr,.ui-locked .jg{pointer-events:none;filter:saturate(.65)}
@@ -64,7 +72,7 @@ canvas{display:block;width:100%;height:100%;background:#000}
 .trackrow small{display:block;color:#9da8bd;margin-top:4px}
 .libfoot{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 </style></head><body>
-<div class="top" id="msg"></div><div id="appTools"><span id="localClock" title="Toca para cambiar formato">--:--</span><button id="lockUi" type="button">🔓 Bloquear</button></div>
+<div id="splash" aria-label="SC LIVE 2"><svg id="splashLogo" viewBox="0 0 260 220" role="img" aria-label="SC LIVE 2 logo"><defs><linearGradient id="scg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset=".48" stop-color="#8dc5ff"/><stop offset="1" stop-color="#7957ff"/></linearGradient></defs><circle cx="130" cy="104" r="91" fill="none" stroke="#286dff" stroke-width="2" opacity=".8"/><circle cx="130" cy="104" r="82" fill="#090d18" stroke="#8c63ff" stroke-width="1.5"/><path d="M151 47c-11-8-25-11-39-8-27 5-43 26-43 48 0 23 18 37 45 45l19 6c13 4 19 9 19 18 0 12-12 20-29 20-16 0-31-7-43-19l-19 23c15 17 37 26 62 26 35 0 59-20 59-51 0-24-15-39-46-49l-20-6c-13-4-18-8-18-16 0-9 9-16 22-16 11 0 21 4 30 12z" fill="url(#scg)" transform="translate(4,-3) scale(.94)"/></svg><div id="splashTitle">SC LIVE 2</div><div id="splashSub">PRO DJ SYSTEM</div></div><div class="top" id="msg"></div><div id="appTools"><span id="localClock" title="Toca para cambiar formato">--:--</span><button id="lockUi" type="button">🔓 Bloquear</button></div>
 <div id="wrap"><div id="st"></div></div>
 <input type="file" id="file" accept="audio/*" multiple hidden><input type="file" id="folderfile" accept="audio/*" multiple webkitdirectory hidden><div id="library"><div class="libhead"><strong style="font-size:20px">SC LIVE 2 · BIBLIOTECA</strong><button class="libaction" id="libclose">Cerrar ✕</button></div><div class="libhead"><input id="libsearch" placeholder="Buscar canción, artista o archivo…"><button class="libaction" id="libadd">＋ Añadir música</button><button class="libaction" id="libfolder">＋ Añadir carpeta</button></div><div class="libtabs" id="libtabs"></div><div id="liblist"></div><div class="libfoot"><small>La biblioteca de esta versión muestra las pistas cargadas durante esta sesión. Android nativo podrá indexar la música del dispositivo con permisos.</small></div></div>
 <script>
