@@ -237,7 +237,7 @@ function deck(i){const o=i*582,d=D[i];
  lb(o+40,203,'AUTO LOOP');knob(o+40,224,28,.5,v=>{d.al=[.5,1,2,4,8,16][Math.min(5,Math.floor(v*6))]},'',()=>{if(!d.buf)return;if(d.loop.on)setLoop(d,0,0,0);else{const p=pos(d);setLoop(d,p,p+d.al*60/(d.bpm||120),1)}});lb(o+40,246,'SIZE/MOVE');
  btn(o+28,267,24,14,'IN','',()=>{d.in=pos(d)});btn(o+58,267,24,14,'OUT','',()=>{if(d.loop.on)setLoop(d,0,0,0);else if(d.in!=null){const b=pos(d);if(b>d.in+.05)setLoop(d,d.in,b,1)}});lb(o+43,282,'MANUAL LOOP');
  btn(o+46,300,44,18,'CENSOR','',()=>{if(!d.buf)return;d.g0=pos(d);d.g1=ctx.currentTime;d.ci=setInterval(()=>seek(d,pos(d)-.35),90)},()=>{clearInterval(d.ci);if(d.buf&&d.g1)seek(d,d.g0+(ctx.currentTime-d.g1)*d.rate)});lb(o+46,316,'REVERSE');
- const J=el('jg',o+73,265,220,220);d.jg=J;
+ const J=el('jg',o+73,220,220,220);d.jg=J;
  d.pl=el('pl',10,10,200,200,'<div class="mk"></div><div class="lgo"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M5 15v-3a7 7 0 0 1 14 0v3" fill="none" stroke="#e8eaf0" stroke-width="2"/><rect x="3" y="14" width="4" height="6" rx="1.5" fill="#e8eaf0"/><rect x="17" y="14" width="4" height="6" rx="1.5" fill="#e8eaf0"/></svg></div>',J);
  d.rg=el('rg',46,46,128,128,'',J);
  const ang=q=>{const r=J.getBoundingClientRect();return Math.atan2(q.clientY-r.top-r.height/2,q.clientX-r.left-r.width/2)};let a0,dr=0,wp=0,jm=0,jt=0;
@@ -250,14 +250,14 @@ function deck(i){const o=i*582,d=D[i];
  btn(o+323,282,26,16,'SYNC','',()=>sync(d));btn(o+350,282,22,16,'♪','bl');lb(o+323,296,'OFF');lb(o+350,296,'RESET');
  lb(o+52,381,'TRACK SKIP');btn(o+35,393,26,16,'⏮','',()=>seek(d,0));btn(o+70,393,26,16,'⏭','',()=>seek(d,pos(d)+30));lb(o+52,408,'SEARCH');
  lb(o+52,423,'BEAT JUMP');btn(o+35,435,26,16,'↶','',()=>{if(d.loop.on){const len=d.loop.b-d.loop.a;setLoop(d,d.loop.a-len,d.loop.b-len,1)}else seek(d,pos(d)-d.al*60/(d.bpm||120))});btn(o+70,435,26,16,'↷','',()=>{if(d.loop.on){const len=d.loop.b-d.loop.a;setLoop(d,d.loop.a+len,d.loop.b+len,1)}else seek(d,pos(d)+d.al*60/(d.bpm||120))});lb(o+52,449,'SIZE');lb(o+180,458,'REPRODUCCIÓN');d.repeatBtn=btn(o+126,474,30,16,'RPT','',()=>{d.repeatTrack=!d.repeatTrack;d.repeatBtn.classList.toggle('on',d.repeatTrack);msg('Deck '+(i+1)+' repetir canción '+(d.repeatTrack?'activado':'desactivado'))});d.shuffleBtn=btn(o+160,474,30,16,'RND','',()=>{d.shuffle=!d.shuffle;d.shuffleBtn.classList.toggle('on',d.shuffle);msg('Deck '+(i+1)+' aleatorio '+(d.shuffle?'activado':'desactivado'))});d.continuousBtn=btn(o+194,474,36,16,'AUTO','',()=>{d.continuous=!d.continuous;d.continuousBtn.classList.toggle('on',d.continuous);msg('Deck '+(i+1)+' reproducción continua '+(d.continuous?'activada':'desactivada'))});
- btn(o+46,476,56,56,'CUE','cue',()=>{if(!d.buf)return;if(d.playing){pause(d);seek(d,d.cue)}else if(Math.abs(pos(d)-d.cue)>.05)d.cue=pos(d);else{d.pv=1;play(d)}},()=>{if(d.pv){d.pv=0;pause(d);seek(d,d.cue)}});
- d.pb=btn(o+46,531,56,56,'▶❚❚','pl',()=>{d.playing?pause(d):play(d)});
+ btn(o+46,450,56,56,'CUE','cue',()=>{if(!d.buf)return;if(d.playing){pause(d);seek(d,d.cue)}else if(Math.abs(pos(d)-d.cue)>.05)d.cue=pos(d);else{d.pv=1;play(d)}},()=>{if(d.pv){d.pv=0;pause(d);seek(d,d.cue)}});
+ d.pb=btn(o+46,505,56,56,'▶❚❚','pl',()=>{d.playing?pause(d):play(d)});
  d.pf=fader(o+335,315,180,.5,v=>{d.pr=1+(.5-v)*1;setRate(d)},0,38,16);
  lb(o+338,512,'PITCH BEND');btn(o+328,529,18,14,'−','',()=>{d.bd=.94;setRate(d)},()=>{d.bd=1;setRate(d)});btn(o+350,529,18,14,'+','',()=>{d.bd=1.06;setRate(d)},()=>{d.bd=1;setRate(d)});lb(o+338,544,'PITCH ±50%');
  const mn=['SHIFT','CUE','LOOP','ROLL','RANK','◀','▶'],mx=[118,142,166,191,215,240,264],mm=[0,'cue','loop','roll','rank'],mbs=[];
- mn.forEach((t,k)=>{mbs[k]=btn(o+mx[k],502,23,14,t,k==1?'on':'',()=>{if(k==0)d.sh=1;else if(k<5){d.mode=mm[k];mbs.forEach((b,j)=>j>0&&j<5&&b.classList.toggle('on',j==k));padsUI(d)}},()=>{if(k==0)d.sh=0})});
- const del=btn(o+292,502,28,14,'DEL','',()=>{d.deleteMode=!d.deleteMode;del.classList.toggle('on',d.deleteMode);msg(d.deleteMode?'DELETE activo: toca el Hot Cue que quieres borrar':'DELETE desactivado')});
- [125,170,213,255].forEach((x,k)=>{d.pads[k]=btn(o+x,534,38,28,'','pad',()=>{if(d.deleteMode){d.hot[k]=null;saveHotCues(d);d.deleteMode=false;del.classList.remove('on');padsUI(d);msg('Hot Cue '+(k+1)+' eliminado');return}pad(d,k)},()=>padUp(d))});
+ mn.forEach((t,k)=>{mbs[k]=btn(o+mx[k],486,23,14,t,k==1?'on':'',()=>{if(k==0)d.sh=1;else if(k<5){d.mode=mm[k];mbs.forEach((b,j)=>j>0&&j<5&&b.classList.toggle('on',j==k));padsUI(d)}},()=>{if(k==0)d.sh=0})});
+ const del=btn(o+292,486,28,14,'DEL','',()=>{d.deleteMode=!d.deleteMode;del.classList.toggle('on',d.deleteMode);msg(d.deleteMode?'DELETE activo: toca el Hot Cue que quieres borrar':'DELETE desactivado')});
+ [125,170,213,255].forEach((x,k)=>{d.pads[k]=btn(o+x,508,38,28,'','pad',()=>{if(d.deleteMode){d.hot[k]=null;saveHotCues(d);d.deleteMode=false;del.classList.remove('on');padsUI(d);msg('Hot Cue '+(k+1)+' eliminado');return}pad(d,k)},()=>padUp(d))});
  el('tt',o+178,200,0,0,i?'SC LIVE 2':'PRO DJ SYSTEM');
 }
 function chrome(){
