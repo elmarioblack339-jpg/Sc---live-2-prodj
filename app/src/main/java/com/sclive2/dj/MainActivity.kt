@@ -1,10 +1,14 @@
 package com.sclive2.dj
 
+import android.Manifest
 import android.content.Intent
-import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
+import android.util.Base64
 import android.view.View
+import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -12,10 +16,20 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import org.json.JSONArray
+import org.json.JSONObject
 
 class MainActivity : ComponentActivity() {
     private lateinit var webView: WebView
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
+
+    private fun audioPermission(): String =
+        if (android.os.Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_AUDIO
+        else Manifest.permission.READ_EXTERNAL_STORAGE
+
+    private val audioPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted -> notifyAudioPermission(granted) }
 
     private val audioPicker = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -35,17 +49,95 @@ class MainActivity : ComponentActivity() {
         if (uris.isEmpty()) data?.data?.let { uris.add(it) }
         uris.forEach { uri ->
             try {
-                contentResolver.takePersistableUriPermission(
-                    uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
+                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             } catch (_: SecurityException) { }
         }
         callback.onReceiveValue(uris.takeIf { it.isNotEmpty() }?.toTypedArray())
     }
 
+    private fun notifyAudioPermission(granted: Boolean) {
+        if (!::webView.isInitialized) return
+        webView.post {
+            webView.evaluateJavascript("window.onNativeAudioPermission && window.onNativeAudioPermission($granted);", null)
+        }
+    }
+
+    inner class AudioBridge {
+        @JavascriptInterface
+        fun requestAudioPermission() {
+            runOnUiThread {
+                if (checkSelfPermission(audioPermission()) == PackageManager.PERMISSION_GRANTED) {
+                    notifyAudioPermission(true)
+                } else {
+                    audioPermissionLauncher.launch(audioPermission())
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun getAudioTracks(): String {
+            if (checkSelfPermission(audioPermission()) != PackageManager.PERMISSION_GRANTED) return "[]"
+            val tracks = JSONArray()
+            val projection = arrayOf(
+                MediaStore.Audio.Media._ID,
+                MediaStore.Audio.Media.TITLE,
+                MediaStore.Audio.Media.ARTIST,
+                MediaStore.Audio.Media.ALBUM,
+                MediaStore.Audio.Media.DURATION
+            )
+            try {
+                contentResolver.query(
+                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    projection,
+                    "${MediaStore.Audio.Media.IS_MUSIC} != 0",
+                    null,
+                    "${MediaStore.Audio.Media.TITLE} COLLATE NOCASE ASC"
+                )?.use { cursor ->
+                    val idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+                    val titleCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+                    val artistCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+                    val albumCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
+                    val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+                    while (cursor.moveToNext()) {
+                        val id = cursor.getLong(idCol)
+                        val item = JSONObject()
+                        item.put("uri", Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id.toString()).toString())
+                        item.put("title", cursor.getString(titleCol) ?: "Audio sin título")
+                        item.put("artist", cursor.getString(artistCol) ?: "")
+                        item.put("album", cursor.getString(albumCol) ?: "")
+                        item.put("duration", cursor.getLong(durationCol))
+                        tracks.put(item)
+                    }
+                }
+            } catch (_: Exception) { }
+            return tracks.toString()
+        }
+
+        @JavascriptInterface
+        fun loadTrack(uriText: String, name: String, callbackId: String, deckIndex: Int) {
+            val uri = try { Uri.parse(uriText) } catch (_: Exception) { return }
+            if (uri.scheme != "content") return
+            Thread {
+                try {
+                    val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return@Thread
+                    val encoded = Base64.encodeToString(bytes, Base64.NO_WRAP)
+                    val js = "window.onNativeAudioData && window.onNativeAudioData(" +
+                        JSONObject.quote(callbackId) + "," + JSONObject.quote(name) + "," +
+                        JSONObject.quote(encoded) + "," + deckIndex.coerceIn(0, 1) + ");"
+                    webView.post { webView.evaluateJavascript(js, null) }
+                } catch (_: Exception) {
+                    webView.post {
+                        webView.evaluateJavascript("window.SCNativeLoadError && window.SCNativeLoadError();", null)
+                    }
+                }
+            }.start()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         @Suppress("DEPRECATION")
         window.decorView.systemUiVisibility = (
             View.SYSTEM_UI_FLAG_FULLSCREEN or
@@ -66,10 +158,9 @@ class MainActivity : ComponentActivity() {
             settings.builtInZoomControls = false
             settings.displayZoomControls = false
             settings.setSupportZoom(false)
+            addJavascriptInterface(AudioBridge(), "NativeAudio")
             webViewClient = object : WebViewClient() {
-                override fun shouldOverrideUrlLoading(
-                    view: WebView?, request: WebResourceRequest?
-                ): Boolean {
+                override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                     val url = request?.url?.toString() ?: return false
                     return !url.startsWith("file:///android_asset/") &&
                         !url.startsWith("https://fonts.googleapis.com/") &&
