@@ -2,6 +2,8 @@ package com.sclive2.dj
 
 import android.Manifest
 import android.content.Intent
+import android.provider.Settings
+import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -117,6 +119,10 @@ class MainActivity : ComponentActivity() {
         @JavascriptInterface
         fun getPlayableUrl(uriText: String): String =
             "https://sc-audio.local/audio?uri=" + Uri.encode(uriText)
+
+        @JavascriptInterface fun openWifiSettings() { runOnUiThread { try { if (android.os.Build.VERSION.SDK_INT >= 29) startActivity(Intent(Settings.Panel.ACTION_WIFI)) else startActivity(Intent(Settings.ACTION_WIFI_SETTINGS)) } catch (_: Exception) { startActivity(Intent(Settings.ACTION_WIFI_SETTINGS)) } } }
+        @JavascriptInterface fun openOnlineBrowser() { runOnUiThread { try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/search?q=descargar+musica"))) } catch (_: Exception) { } } }
+        @JavascriptInterface fun exitApp() { runOnUiThread { finish() } }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -206,6 +212,13 @@ class MainActivity : ComponentActivity() {
         } else {
             webView.restoreState(savedInstanceState)
         }
+    }
+
+    @Deprecated("Deprecated in Android API")
+    override fun onBackPressed() {
+        AlertDialog.Builder(this).setMessage("¿Estás seguro de que deseas salir de SC LIVE 2?")
+            .setPositiveButton("Sí") { _, _ -> finish() }
+            .setNegativeButton("No", null).show()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
