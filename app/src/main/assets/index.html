@@ -62,6 +62,8 @@ canvas{display:block;width:100%;height:100%;background:#000}
 
 #library{position:fixed;inset:0;z-index:50;background:rgba(5,7,12,.96);color:#eef2ff;display:none;font:14px Arial,sans-serif;padding:18px;overflow:auto;touch-action:pan-y}
 #library.show{display:block}
+#proMenu{position:fixed;inset:4%;z-index:60;display:none;overflow:auto;background:rgba(8,12,22,.98);border:1px solid #397cff;border-radius:14px;color:#eef2ff;padding:16px;font:14px Arial,sans-serif;touch-action:pan-y}#proMenu.show{display:block}#proMenu h2{margin:0 0 12px;color:#8fc0ff}#proMenu .progrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px}#proMenu label{display:block;background:#171e2d;padding:9px;border-radius:8px}#proMenu input{width:100%}#proMenu button{padding:9px 13px;border-radius:8px;background:#245db2;color:white;border:1px solid #5795ff}
+.zoomctl{position:fixed;right:8px;bottom:8px;z-index:45;display:flex;gap:6px}.zoomctl button{background:#172238;color:#fff;border:1px solid #397cff;border-radius:8px;padding:8px 12px}
 .libhead{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 #libsearch{flex:1;min-width:150px;padding:10px;border-radius:8px;border:1px solid #41485a;background:#171c27;color:white}
 .libtabs{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}
@@ -74,9 +76,9 @@ canvas{display:block;width:100%;height:100%;background:#000}
 </style></head><body>
 <div id="splash" aria-label="SC LIVE 2"><svg id="splashLogo" viewBox="0 0 260 220" role="img" aria-label="SC LIVE 2 logo"><defs><linearGradient id="scg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset=".48" stop-color="#8dc5ff"/><stop offset="1" stop-color="#7957ff"/></linearGradient></defs><circle cx="130" cy="104" r="91" fill="none" stroke="#286dff" stroke-width="2" opacity=".8"/><circle cx="130" cy="104" r="82" fill="#090d18" stroke="#8c63ff" stroke-width="1.5"/><text x="130" y="143" text-anchor="middle" font-family="Arial,sans-serif" font-size="104" font-weight="900" letter-spacing="-10" fill="url(#scg)">SC</text></svg><div id="splashTitle">SC LIVE 2</div><div id="splashSub">PRO DJ SYSTEM</div></div><div class="top" id="msg"></div><div id="appTools"><span id="localClock" title="Toca para cambiar formato">--:--</span><button id="lockUi" type="button">🔓 Bloquear</button></div>
 <div id="wrap"><div id="st"></div></div>
-<input type="file" id="file" accept="audio/*" multiple hidden><input type="file" id="folderfile" accept="audio/*" multiple webkitdirectory hidden><div id="library"><div class="libhead"><strong style="font-size:20px">SC LIVE 2 · BIBLIOTECA</strong><button class="libaction" id="libclose">Cerrar ✕</button></div><div class="libhead"><input id="libsearch" placeholder="Buscar canción, artista o archivo…"><button class="libaction" id="libadd">＋ Añadir música</button><button class="libaction" id="libfolder">＋ Añadir carpeta</button></div><div class="libtabs" id="libtabs"></div><div id="liblist"></div><div class="libfoot"><small>La biblioteca muestra la música local del teléfono y permite cargar cada pista en Deck 1 o Deck 2.</small></div></div>
+<input type="file" id="file" accept="audio/*" multiple hidden><input type="file" id="folderfile" accept="audio/*" multiple webkitdirectory hidden><div id="proMenu"><h2>SC LIVE 2 · AUDIO PRO</h2><p>Procesamiento avanzado. Los cambios se aplican al ecualizador y al limitador actuales.</p><div class="progrid"><label>Ganancia graves <input id="advLow" type="range" min="-12" max="12" value="0"></label><label>Ganancia medios <input id="advMid" type="range" min="-12" max="12" value="0"></label><label>Ganancia agudos <input id="advHigh" type="range" min="-12" max="12" value="0"></label><label>Umbral limitador <input id="advLimit" type="range" min="-18" max="0" value="-4"></label><label>Ratio compresión <input id="advRatio" type="range" min="1" max="20" value="4"></label><label>Saturación suave <input id="advSat" type="range" min="0" max="30" value="0"></label></div><p>La saturación es experimental y debe usarse con moderación para evitar distorsión.</p><button id="proClose">Cerrar menú</button></div><div class="zoomctl"><button id="zoomOut">−</button><button id="zoomReset">Ajustar</button><button id="zoomIn">+</button></div><div id="library"><div class="libhead"><strong style="font-size:20px">SC LIVE 2 · BIBLIOTECA</strong><button class="libaction" id="libclose">Cerrar ✕</button></div><div class="libhead"><input id="libsearch" placeholder="Buscar canción, artista o archivo…"><button class="libaction" id="libadd">＋ Añadir música</button><button class="libaction" id="libfolder">＋ Añadir carpeta</button></div><div class="libtabs" id="libtabs"></div><div id="liblist"></div><div class="libfoot"><small>La biblioteca muestra la música local del teléfono y permite cargar cada pista en Deck 1 o Deck 2.</small></div></div>
 <script>
-const $=s=>document.querySelector(s),S=$('#st');let SC=1,ctx,M={},tgt=0,uiLocked=false,clock24=true;const reg=[];
+const $=s=>document.querySelector(s),S=$('#st');let SC=1,zoom=1,ctx,M={},tgt=0,uiLocked=false,clock24=true,browserTap=0;const reg=[];
 const clockEl=$('#localClock');function updateClock(){const n=new Date();clockEl.textContent=n.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:!clock24})+' · '+n.toLocaleDateString([], {weekday:'short',day:'2-digit',month:'short'});}
 clockEl.onclick=()=>{clock24=!clock24;updateClock()};setInterval(updateClock,1000);updateClock();
 $('#lockUi').onclick=()=>{uiLocked=!uiLocked;document.body.classList.toggle('ui-locked',uiLocked);$('#lockUi').textContent=uiLocked?'🔒 Bloqueada':'🔓 Bloquear';msg(uiLocked?'Interfaz bloqueada: controles de ajuste protegidos':'Interfaz desbloqueada')};
@@ -126,6 +128,12 @@ function loadNativeTrack(track,deckIndex){const d=D[deckIndex];if(!d||d.playing|
 const audioFile=f=>f&&(f.type.startsWith('audio/')||/\\.(mp3|wav|m4a|ogg|flac|aac)$/i.test(f.name));
 function addLibraryFiles(files){[...files].filter(audioFile).forEach(f=>{if(!library.some(x=>x.name===f.name&&x.size===f.size))library.push(f)});renderLibrary()}
 function openLibrary(i){tgt=i;refreshNativeTracks();renderLibrary();lib.classList.add('show')}
+function openOnlineBrowser(){if(!navigator.onLine){msg('Conéctate a internet para usar Browser');return}if(window.NativeAudio&&NativeAudio.openOnlineBrowser){NativeAudio.openOnlineBrowser();return}msg('Browser online requiere Android');}
+function showProMenu(){const p=$('#proMenu');p.classList.add('show');}
+$('#proClose').onclick=()=>$('#proMenu').classList.remove('show');
+function applyAdvanced(){if(!ctx)return;const low=Number($('#advLow').value),mid=Number($('#advMid').value),high=Number($('#advHigh').value);D.forEach(d=>{d.n.lo.gain.value=low;d.n.mid.gain.value=mid;d.n.hi.gain.value=high});M.lim.threshold.value=Number($('#advLimit').value);M.lim.ratio.value=Number($('#advRatio').value);const sat=Number($('#advSat').value)/100;D.forEach(d=>{if(d.n.shaper)d.n.shaper.curve=makeSatCurve(sat)});}
+['advLow','advMid','advHigh','advLimit','advRatio','advSat'].forEach(id=>$('#'+id).addEventListener('input',applyAdvanced));
+function makeSatCurve(amount){const n=256,c=new Float32Array(n),k=amount*30;for(let i=0;i<n;i++){const x=i*2/(n-1)-1;c[i]=k?Math.tanh(x*(1+k))/Math.tanh(1+k):x}return c;}
 function renderLibrary(){const tabs=['Todas','Álbumes','Artistas','Carpetas','Descargas'];$('#libtabs').innerHTML='';tabs.forEach(t=>{const b=document.createElement('button');b.className='libtab'+(libTab===t?' active':'');b.textContent=t;b.onclick=()=>{libTab=t;renderLibrary()};$('#libtabs').appendChild(b)});
  const q=$('#libsearch').value.toLowerCase(),list=$('#liblist');list.innerHTML='';
  const visibleNative=nativeTracks.filter(t=>(String(t.title||'')+' '+String(t.artist||'')+' '+String(t.album||'')).toLowerCase().includes(q));
@@ -171,7 +179,7 @@ function deck(i){const o=i*582,d=D[i];
  const vb=btn(o+336,239,36,22,'VINYL','bl on',()=>{d.vin=!d.vin;vb.classList.toggle('on',d.vin)});
  btn(o+323,282,26,16,'SYNC','',()=>sync(d));btn(o+350,282,22,16,'♪','bl');lb(o+323,296,'OFF');lb(o+350,296,'RESET');
  lb(o+52,381,'TRACK SKIP');btn(o+35,393,26,16,'⏮','',()=>seek(d,0));btn(o+70,393,26,16,'⏭','',()=>seek(d,pos(d)+30));lb(o+52,408,'SEARCH');
- lb(o+52,423,'BEAT JUMP');btn(o+35,435,26,16,'↶','',()=>seek(d,pos(d)-d.al*60/(d.bpm||120)));btn(o+70,435,26,16,'↷','',()=>seek(d,pos(d)+d.al*60/(d.bpm||120)));lb(o+52,449,'SIZE');
+ lb(o+52,423,'BEAT JUMP');btn(o+35,435,26,16,'↶','',()=>{if(d.loop.on){const len=d.loop.b-d.loop.a;setLoop(d,d.loop.a-len,d.loop.b-len,1)}else seek(d,pos(d)-d.al*60/(d.bpm||120))});btn(o+70,435,26,16,'↷','',()=>{if(d.loop.on){const len=d.loop.b-d.loop.a;setLoop(d,d.loop.a+len,d.loop.b+len,1)}else seek(d,pos(d)+d.al*60/(d.bpm||120))});lb(o+52,449,'SIZE');
  btn(o+46,476,56,56,'CUE','cue',()=>{if(!d.buf)return;if(d.playing){pause(d);seek(d,d.cue)}else if(Math.abs(pos(d)-d.cue)>.05)d.cue=pos(d);else{d.pv=1;play(d)}},()=>{if(d.pv){d.pv=0;pause(d);seek(d,d.cue)}});
  d.pb=btn(o+46,531,56,56,'▶❚❚','pl',()=>{d.playing?pause(d):play(d)});
  d.pf=fader(o+335,315,180,.5,v=>{d.pr=1+(.5-v)*1;setRate(d)},0,38,16);
@@ -192,8 +200,8 @@ el('eqp',13,88,277,102,'');el('eqp',667,88,277,102,'');
 const body=el('bd',12,87,933,476,'');S.insertBefore(body,S.firstChild);
 const cv=document.createElement('canvas');cv.width=460;cv.height=280;const g2=cv.getContext('2d');const scr=el('',65,42,230,140,'',hs);scr.appendChild(cv);
 cv.onpointerdown=q=>{const r=cv.getBoundingClientRect();const deckIndex=q.clientY<r.top+r.height/2?0:1;openLibrary(deckIndex)};
-[['VIEW',62],['MENU',100],['WIFI',124],['LIGHTING',146]].forEach(([t,y])=>{const b=btn(28,y,30,18,t,'');b.style.fontSize='6px'});
-btn(332,48,22,12,'BACK','');btn(358,48,22,12,'FWD','');knob(336,100,32,.5,()=>{},'',()=>openLibrary(D[0].buf&&!D[1].buf?1:0));lb(336,126,'BROWSE');
+const sideButtons={};[['VIEW',62],['MENU',100],['WIFI',124],['LIGHTING',146]].forEach(([t,y])=>{const b=btn(28,y,30,18,t,'',()=>{if(t==='MENU')showProMenu();if(t==='WIFI'&&window.NativeAudio)NativeAudio.openWifiSettings()});b.style.fontSize='6px';sideButtons[t]=b});
+const backBtn=btn(332,48,22,12,'BACK','',()=>{if(confirm('¿Estás seguro de que deseas salir de SC LIVE 2?')){if(window.NativeAudio)NativeAudio.exitApp()}});btn(358,48,22,12,'FWD','',()=>{});const browseKnob=knob(336,100,32,.5,()=>{},'',()=>{const now=Date.now();if(now-browserTap<450){openOnlineBrowser();browserTap=0}else{browserTap=now;openLibrary(D[0].buf&&!D[1].buf?1:0)}});lb(336,126,'BROWSE · DOBLE TOQUE');
 el('mx',370,190,202,372,'');
 lb(388,200,'SPEAKER');knob(388,222,20,.7,v=>{if(ctx)M.sp.gain.value=v*1.4});lb(388,238,'LEVEL');btn(418,222,14,18,'','');
 lb(399,252,'MICROPHONE');knob(399,274,24,.5,v=>{M.ml=v;if(ctx&&M.on)M.mic.gain.value=v*1.5});lb(399,291,'LEVEL');
@@ -274,6 +282,7 @@ const side=e=>e.clientX<S.getBoundingClientRect().left+480*SC?0:1;
 addEventListener('dragover',e=>{e.preventDefault();const s=side(e);zs.forEach((z,i)=>z.style.display=i==s?'flex':'none')});
 addEventListener('dragleave',e=>{if(!e.relatedTarget)zs.forEach(z=>z.style.display='none')});
 addEventListener('drop',e=>{e.preventDefault();zs.forEach(z=>z.style.display='none');const s=side(e),fs=[...e.dataTransfer.files].filter(f=>f.type.startsWith('audio')||/\.(mp3|wav|m4a|ogg|flac|aac)$/i.test(f.name));(async()=>{for(const f of fs.slice(0,2))await load(f)})()});
-function fit(){SC=Math.min(innerWidth/960,(innerHeight-44)/580);S.style.transform='scale('+SC+')';const W=$('#wrap');W.style.width=960*SC+'px';W.style.height=580*SC+'px'}
+function fit(){SC=Math.min(innerWidth/960,(innerHeight-8)/580)*zoom;S.style.transform='scale('+SC+')';const W=$('#wrap');W.style.width=960*SC+'px';W.style.height=580*SC+'px'}
+$('#zoomIn').onclick=()=>{zoom=Math.min(1.35,zoom+.05);fit()};$('#zoomOut').onclick=()=>{zoom=Math.max(.7,zoom-.05);fit()};$('#zoomReset').onclick=()=>{zoom=1;fit()};
 addEventListener('resize',fit);fit();msg();tick();setTimeout(()=>{const splash=$('#splash');if(splash)splash.remove();if(window.NativeAudio)NativeAudio.requestAudioPermission()},2300);
 </script></body></html>
