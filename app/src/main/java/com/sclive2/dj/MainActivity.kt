@@ -194,12 +194,14 @@ private fun SCLiveConsole() {
                     onLoad = { requestLoad(1) },
                     onPlay = { if (uri1 != null) { if (player1.isPlaying) player1.pause() else player1.play() } else notice = "Primero carga una canción en Deck 1." },
                     onStop = { player1.pause(); player1.seekTo(0) },
-                    onCue = { player1.seekTo(0) }, onSync = { player1.setPlaybackSpeed(1f) },\n                    progress = progress1, onSeek = { player1.seekTo((player1.duration.coerceAtLeast(0L) * it).toLong()) })
+                    onCue = { player1.seekTo(0) }, onSync = { player1.setPlaybackSpeed(1f) },
+                    progress = progress1, onSeek = { player1.seekTo((player1.duration.coerceAtLeast(0L) * it).toLong()) })
                 DeckPanel("DECK 2", track2, playing2, uri2 != null, Modifier.weight(1f),
                     onLoad = { requestLoad(2) },
                     onPlay = { if (uri2 != null) { if (player2.isPlaying) player2.pause() else player2.play() } else notice = "Primero carga una canción en Deck 2." },
                     onStop = { player2.pause(); player2.seekTo(0) },
-                    onCue = { player2.seekTo(0) }, onSync = { player2.setPlaybackSpeed(1f) },\n                    progress = progress2, onSeek = { player2.seekTo((player2.duration.coerceAtLeast(0L) * it).toLong()) })
+                    onCue = { player2.seekTo(0) }, onSync = { player2.setPlaybackSpeed(1f) },
+                    progress = progress2, onSeek = { player2.seekTo((player2.duration.coerceAtLeast(0L) * it).toLong()) })
             }
             Spacer(Modifier.height(8.dp))
             Column(Modifier.fillMaxWidth().background(Color(0xFF101722), RoundedCornerShape(12.dp)).padding(horizontal = 14.dp, vertical = 8.dp)) {
@@ -282,7 +284,8 @@ private fun displayName(context: Context, uri: Uri): String {
 private fun DeckPanel(
     name: String, track: String, playing: Boolean, loaded: Boolean, modifier: Modifier,
     onLoad: () -> Unit, onPlay: () -> Unit, onStop: () -> Unit,
-    onCue: () -> Unit, onSync: () -> Unit
+    onCue: () -> Unit, onSync: () -> Unit,
+    progress: Float, onSeek: (Float) -> Unit
 ) {
     Column(modifier.fillMaxHeight().background(Panel, RoundedCornerShape(14.dp)).padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally) {
@@ -316,6 +319,8 @@ private fun DeckPanel(
         }
         Spacer(Modifier.height(8.dp))
         Text(if (loaded) track else "Deck vacío · carga una pista", color = Color.White, fontSize = 12.sp, maxLines = 1)
+        Slider(value = progress, onValueChange = onSeek, enabled = loaded, modifier = Modifier.fillMaxWidth())
+        Text(formatPlayerTime(progress), color = Color.LightGray, fontSize = 9.sp)
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = onLoad, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF263445))) { Text("CARGAR") }
