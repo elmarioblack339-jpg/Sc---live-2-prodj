@@ -8,18 +8,16 @@ android {
     ndkVersion = "27.2.12479018"
     defaultConfig {
         applicationId = "com.sclive2.dj"
-        // Keep the main DJ app installable on older Android versions.
-        // The Demucs engine itself is gated at runtime to Android 10+ and arm64.
         minSdk = 26
         targetSdk = 35
         versionCode = 3
         versionName = "1.1.0"
+        // Package both 32-bit and 64-bit ARM so older phones can install the DJ app.
+        // The RANK engine runs only on Android 10+ arm64 devices.
+        ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a") }
         externalNativeBuild {
             cmake {
-                arguments += listOf(
-                    "-DANDROID_STL=c++_shared",
-                    "-DANDROID_PLATFORM=android-29"
-                )
+                arguments += listOf("-DANDROID_STL=c++_shared", "-DANDROID_PLATFORM=android-29")
             }
         }
     }
