@@ -27,14 +27,18 @@ jobs:
             echo "::error::The working SC LIVE 2 interface is missing."
             exit 1
           }
-          test -s app/src/main/assets/mte-ca32.webp || {
-            echo "::error::The MTE CA32 amplifier image is missing."
+          grep -q 'ampFaceplate' app/src/main/assets/index.html || {
+            echo "::error::The functional MTE CA32 front-panel interface is missing."
             exit 1
           }
-          grep -q 'mte-ca32.webp' app/src/main/assets/index.html || {
-            echo "::error::The MTE CA32 image is not referenced by the working interface."
+          grep -q 'ampBassDial' app/src/main/assets/index.html
+          grep -q 'ampMidBassDial' app/src/main/assets/index.html
+          grep -q 'ampMidDial' app/src/main/assets/index.html
+          grep -q 'ampTrebleDial' app/src/main/assets/index.html
+          if grep -q 'mte-ca32.webp\|ampHardware' app/src/main/assets/index.html; then
+            echo "::error::A decorative amplifier photo must not be used."
             exit 1
-          }
+          fi
       - name: Build debug APK (retry transient repository failures)
         shell: bash
         run: |
