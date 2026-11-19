@@ -420,7 +420,8 @@ class MainActivity : ComponentActivity() {
             webView.evaluateJavascript("window.openLibrary && window.openLibrary(0);", null)
         })
         addBrowserButton(actions, "CERRAR", {
-            if (browserPinnedDeck != null) dialog.hide() else dialog.dismiss()
+            browserPinnedDeck = null
+            dialog.dismiss()
         }, Color.rgb(105, 39, 43))
         root.addView(actions)
         val browser = WebView(this).apply {
