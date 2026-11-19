@@ -1,7 +1,7 @@
 name: Build SC LIVE 2 APK
 on:
   push:
-    branches: [sc-live2-build, sc-live2-rebuild-clean, sc-live2-punto-gasolina]
+    branches: [sc-live2-build, sc-live2-rebuild-clean, sc-live2-punto-gasolina, sc-live2-rank-stems-browser-rec]
   workflow_dispatch:
 permissions:
   contents: read
@@ -35,6 +35,16 @@ jobs:
           grep -q 'ampMidBassDial' app/src/main/assets/index.html
           grep -q 'ampMidDial' app/src/main/assets/index.html
           grep -q 'ampTrebleDial' app/src/main/assets/index.html
+          grep -q 'ampBassMeter' app/src/main/assets/index.html
+          grep -q 'ampMidBassMeter' app/src/main/assets/index.html
+          grep -q 'ampMidMeter' app/src/main/assets/index.html
+          grep -q 'ampTrebleMeter' app/src/main/assets/index.html
+          grep -q "M.bassSplit1=bq('lowpass',125" app/src/main/assets/index.html
+          grep -q 'SC RACK · DSP / DRIVE RACK 260' app/src/main/assets/index.html
+          if grep -q 'id="ampBassCut"\|id="ampMidBassCut"\|id="ampMidCut"\|id="ampTrebleCut"' app/src/main/assets/index.html; then
+            echo "::error::The old manual band-cut controls must not return."
+            exit 1
+          fi
           if grep -q 'mte-ca32.webp\|ampHardware' app/src/main/assets/index.html; then
             echo "::error::A decorative amplifier photo must not be used."
             exit 1
