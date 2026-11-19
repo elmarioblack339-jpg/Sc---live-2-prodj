@@ -15,7 +15,10 @@ jobs:
         with:
           packages: platform-tools
       - name: Install pinned NDK and CMake
-        run: sdkmanager "ndk;27.2.12479018" "cmake;3.22.1.1"
+        run: |
+          sdkmanager --install "ndk;27.2.12479018" "cmake;3.22.1"
+          test -d "$ANDROID_SDK_ROOT/ndk/27.2.12479018"
+          test -d "$ANDROID_SDK_ROOT/cmake/3.22.1"
       - name: Fetch pinned Demucs Android engine and Eigen
         run: |
           mkdir -p third_party
