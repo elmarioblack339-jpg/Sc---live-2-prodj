@@ -194,18 +194,84 @@ class MainActivity : ComponentActivity() {
 
 
         @JavascriptInterface
-        fun saveRecording(base64Audio: String, fileName: String): Boolean {
-            return try {
-                val bytes = Base64.decode(base64Audio, Base64.DEFAULT)
-                val values = ContentValues().apply {
-                    put(MediaStore.Audio.Media.DISPLAY_NAME, fileName.replace(Regex("[^A-Za-z0-9._-]"), "_"))
-                    put(MediaStore.Audio.Media.MIME_TYPE, "audio/webm")
-                    if (android.os.Build.VERSION.SDK_INT >= 29) put(MediaStore.Audio.Media.RELATIVE_PATH, "Music/SC LIVE 2/Grabaciones")
+        fun beginRecording(fileName: String): Boolean = synchronized(recordingLock) {
+            try {
+                closeRecordingLocked(deleteIncomplete = true)
+                val safeName = fileName.replace(Regex("[^A-Za-z0-9._-]"), "_").let {
+                    if (it.endsWith(".webm", ignoreCase = true)) it else "$it.webm"
                 }
-                val uri = contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values) ?: return false
-                contentResolver.openOutputStream(uri)?.use { it.write(bytes) } ?: return false
+                val values = ContentValues().apply {
+                    put(MediaStore.Audio.Media.DISPLAY_NAME, safeName)
+                    put(MediaStore.Audio.Media.MIME_TYPE, "audio/webm")
+                    if (android.os.Build.VERSION.SDK_INT >= 29) {
+                        put(MediaStore.Audio.Media.RELATIVE_PATH, "Music/SC LIVE 2/Grabaciones")
+                        put(MediaStore.Audio.Media.IS_PENDING, 1)
+                    }
+                }
+                val uri = contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values) ?: return@synchronized false
+                val stream = contentResolver.openOutputStream(uri, "w")
+                if (stream == null) {
+                    contentResolver.delete(uri, null, null)
+                    return@synchronized false
+                }
+                recordingUri = uri
+                recordingStream = stream
                 true
-            } catch (_: Exception) { false }
+            } catch (_: Exception) {
+                closeRecordingLocked(deleteIncomplete = true)
+                false
+            }
+        }
+
+        @JavascriptInterface
+        fun appendRecordingChunk(base64Chunk: String): Boolean = synchronized(recordingLock) {
+            try {
+                val stream = recordingStream ?: return@synchronized false
+                val bytes = Base64.decode(base64Chunk, Base64.DEFAULT)
+                stream.write(bytes)
+                true
+            } catch (_: Exception) {
+                closeRecordingLocked(deleteIncomplete = true)
+                false
+            }
+        }
+
+        @JavascriptInterface
+        fun finishRecording(): Boolean = synchronized(recordingLock) {
+            val uri = recordingUri ?: return@synchronized false
+            try {
+                recordingStream?.flush()
+                recordingStream?.close()
+                recordingStream = null
+                if (android.os.Build.VERSION.SDK_INT >= 29) {
+                    val ready = ContentValues().apply { put(MediaStore.Audio.Media.IS_PENDING, 0) }
+                    contentResolver.update(uri, ready, null, null)
+                }
+                recordingUri = null
+                true
+            } catch (_: Exception) {
+                closeRecordingLocked(deleteIncomplete = true)
+                false
+            }
+        }
+
+        @JavascriptInterface
+        fun cancelRecording() = synchronized(recordingLock) {
+            closeRecordingLocked(deleteIncomplete = true)
+        }
+
+        private val recordingLock = Any()
+        private var recordingUri: Uri? = null
+        private var recordingStream: java.io.OutputStream? = null
+
+        private fun closeRecordingLocked(deleteIncomplete: Boolean) {
+            try { recordingStream?.close() } catch (_: Exception) { }
+            recordingStream = null
+            val uri = recordingUri
+            recordingUri = null
+            if (deleteIncomplete && uri != null) {
+                try { contentResolver.delete(uri, null, null) } catch (_: Exception) { }
+            }
         }
 
         @JavascriptInterface
