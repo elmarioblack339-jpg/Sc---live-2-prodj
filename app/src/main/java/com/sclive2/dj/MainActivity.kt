@@ -51,6 +51,7 @@ class MainActivity : ComponentActivity() {
     private var browserDialog: Dialog? = null
     private var browserWebView: WebView? = null
     private var browserTargetDeck = 0
+    // Deck que mantiene activa la sesión del navegador mientras se usa la biblioteca local.
     private var networkLabel: TextView? = null
     private var batteryLabel: TextView? = null
     private var batteryReceiver: BroadcastReceiver? = null
@@ -401,15 +402,25 @@ class MainActivity : ComponentActivity() {
         val actions = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         addBrowserButton(actions, "← ATRÁS", {
             val current = browserWebView
-            if (current?.canGoBack() == true) current.goBack() else dialog.hide()
+            if (current?.canGoBack() == true) current.goBack() else {
+                if (browserPinnedDeck != null) dialog.hide() else dialog.dismiss()
+            }
         })
-        addBrowserButton(actions, "D1 · CARGAR", { openBrowserAudioPicker(0) }, Color.rgb(28, 83, 62))
-        addBrowserButton(actions, "D2 · CARGAR", { openBrowserAudioPicker(1) }, Color.rgb(28, 83, 62))
-        addBrowserButton(actions, "BIBLIOTECA", {
+        addBrowserButton(actions, "DECK 1", {
+            browserPinnedDeck = 0
             dialog.hide()
+        }, Color.rgb(28, 125, 76))
+        addBrowserButton(actions, "DECK 2", {
+            browserPinnedDeck = 1
+            dialog.hide()
+        }, Color.rgb(28, 125, 76))
+        addBrowserButton(actions, "BIBLIOTECA", {
+            if (browserPinnedDeck != null) dialog.hide() else dialog.dismiss()
             webView.evaluateJavascript("window.openLibrary && window.openLibrary(0);", null)
         })
-        addBrowserButton(actions, "CERRAR", { dialog.hide() }, Color.rgb(105, 39, 43))
+        addBrowserButton(actions, "CERRAR", {
+            if (browserPinnedDeck != null) dialog.hide() else dialog.dismiss()
+        }, Color.rgb(105, 39, 43))
         root.addView(actions)
         val browser = WebView(this).apply {
             setBackgroundColor(Color.rgb(17, 18, 22))
