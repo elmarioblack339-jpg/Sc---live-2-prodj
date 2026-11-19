@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.app.ActivityManager
 import android.content.ContentValues
 import android.os.PowerManager
 import android.os.SystemClock
@@ -273,6 +274,10 @@ class MainActivity : ComponentActivity() {
                 try { contentResolver.delete(uri, null, null) } catch (_: Exception) { }
             }
         }
+
+        @JavascriptInterface
+        fun getRankDeviceStatus(): String =
+            RankDeviceAssessment.assess(this@MainActivity)
 
         @JavascriptInterface
         fun getDeviceStats(): String {
