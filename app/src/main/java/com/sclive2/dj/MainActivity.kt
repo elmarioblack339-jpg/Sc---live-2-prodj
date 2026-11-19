@@ -283,6 +283,7 @@ class MainActivity : ComponentActivity() {
             return
         }
         val dialog = Dialog(this)
+        dialog.setCancelable(false)
         browserDialog = dialog
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
