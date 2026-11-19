@@ -52,6 +52,7 @@ class MainActivity : ComponentActivity() {
     private var browserWebView: WebView? = null
     private var browserTargetDeck = 0
     // Deck que mantiene activa la sesión del navegador mientras se usa la biblioteca local.
+    private var browserPinnedDeck: Int? = null
     private var networkLabel: TextView? = null
     private var batteryLabel: TextView? = null
     private var batteryReceiver: BroadcastReceiver? = null
