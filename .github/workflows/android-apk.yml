@@ -32,6 +32,7 @@ jobs:
             exit 1
           }
           grep -q 'ampBassDial' app/src/main/assets/index.html
+          grep -q 'class="ampFaceBrand">SC AMPLIFICATION' app/src/main/assets/index.html
           grep -q 'ampMidBassDial' app/src/main/assets/index.html
           grep -q 'ampMidDial' app/src/main/assets/index.html
           grep -q 'ampTrebleDial' app/src/main/assets/index.html
