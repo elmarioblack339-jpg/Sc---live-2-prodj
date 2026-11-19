@@ -3,7 +3,7 @@
 Esta carpeta es el espacio de reconstrucción. La aplicación original del usuario es la referencia principal; este documento reúne requisitos recuperados del historial y de las imágenes guardadas. No sustituir la aplicación por una interfaz genérica ni tratar un HTML como si fuera equivalente a la APK sin comprobarlo.
 
 ## 1. Fuente de verdad y preservación
-- APK enviada por el usuario en una conversación anterior: identificada en el historial como `app-debug(3).apk` / `app-debug(3)_044714.apk`, paquete Android `com.sclive2.dj`, aproximadamente 2.25 MB. El adjunto binario no está actualmente disponible para inspección desde los archivos recuperables. No afirmar que fue inspeccionado ni reconstruir su contenido por suposición.
+- APK original recuperada del historial/Library: `app-debug(3)(1).apk` (subida por el usuario, 2,247,521 bytes); `base.apk` es idéntica byte por byte. SHA-256: `1df05cea2d059ab9aed953135ec4a983694dd5ce41192b82b5a6ab33ce6056ac`. Se extrajo `assets/index.html` (84,352 bytes) y se inspeccionó. La fuente original ahora sí está disponible en el entorno de trabajo en `/mnt/data/sc-live2-original-apk/`; no confundirla con los APKs de compilación generados por el asistente.
 - HTML recuperado de conversación: `SC_LIVE_2_DJ_de_Mario_parlantes_reactivos.html`. Es una referencia de código auxiliar, no sustituto demostrado de la APK.
 - Rama de trabajo: `sc-live2-rebuild-clean`; rama previa `sc-live2-build` se conserva como respaldo. No borrar ramas, repositorio ni fuentes antiguas.
 - Esta carpeta debe recibir las referencias, documentación y código nuevo; preservar el material de origen y mantener cambios rastreables.
