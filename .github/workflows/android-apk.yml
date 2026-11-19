@@ -1,7 +1,7 @@
 name: Build SC LIVE 2 APK
 on:
   push:
-    branches: [sc-live2-build, sc-live2-rebuild-clean]
+    branches: [sc-live2-amp-reference-step1]
   workflow_dispatch:
 permissions:
   contents: read
@@ -17,29 +17,21 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Require the original APK source
+      - name: Verify the committed app asset (do not overwrite it)
         run: |
-          test -s rebuild-reference/original-apk/assets/index.html || {
-            echo "::error::The original app-debug(3).apk source has not yet been placed in rebuild-reference/original-apk/assets/index.html. Refusing to build from an unrelated/alternate app."
+          test -s app/src/main/assets/index.html
+          grep -q 'id="dr260Photo"' app/src/main/assets/index.html
+          grep -q 'dbx DriveRack 260' app/src/main/assets/index.html
+          grep -q 'bassAnalyser' app/src/main/assets/index.html
+          grep -q 'midBassAnalyser' app/src/main/assets/index.html
+          grep -q 'midAnalyser' app/src/main/assets/index.html
+          grep -q 'trebleAnalyser' app/src/main/assets/index.html
+          if grep -qi 'PA2' app/src/main/assets/index.html; then
+            echo "::error::Obsolete PA2 reference found"
             exit 1
-          }
-          mkdir -p app/src/main/assets
-          cp rebuild-reference/original-apk/assets/index.html app/src/main/assets/index.html
-      - name: Apply SC AMPLIFICATION phase 1
-        run: python3 rebuild-reference/patches/phase-1-amplifiers.py
-      - name: Build debug APK (retry transient repository failures)
-        shell: bash
-        run: |
-          for attempt in 1 2 3; do
-            if gradle --no-daemon --refresh-dependencies assembleDebug; then
-              exit 0
-            fi
-            if [ "$attempt" -lt 3 ]; then
-              echo "Gradle dependency fetch failed; retrying in 15 seconds (attempt $attempt/3)"
-              sleep 15
-            fi
-          done
-          exit 1
+          fi
+      - name: Build debug APK
+        run: gradle --no-daemon --refresh-dependencies assembleDebug
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
