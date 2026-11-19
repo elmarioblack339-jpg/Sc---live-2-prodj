@@ -37,3 +37,9 @@
 - APK original recuperada e inspeccionada. Ya no es correcto decir que el adjunto no está disponible.
 - La nueva rama ya contiene documentación de requisitos; el HTML actualmente ubicado en `rebuild-reference/index.html` todavía no ha sido sustituido por el asset exacto extraído de la APK.
 - Antes de editar código, comparar la fuente extraída de la APK con el HTML alternativo y mantener el original intacto. No declarar funciones terminadas solo porque una compilación termina correctamente.
+
+
+## Verificación de identidad del HTML
+- SHA-256 del `assets/index.html` extraído de la APK: `c05f1fc97934229f8cb4bed3ba41e1e7e15ef4c78f3dba3730d8149b2bec214b`.
+- SHA-256 del HTML conversacional de 132,186 bytes: `af1ed36ddde0f71f6b527a789099b44309f4da17a983e564d8cea46bfca6b32f`.
+- Los archivos no son iguales. Por tanto, el `rebuild-reference/index.html` existente no es todavía la fuente exacta extraída de la APK original. Esta diferencia quedó verificada por comparación binaria, no por suposición.
