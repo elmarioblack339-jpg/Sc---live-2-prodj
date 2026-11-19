@@ -1,6 +1,6 @@
 # SC LIVE 2 — referencias y requisitos confirmados
 
-Esta carpeta es el espacio de reconstrucción. La aplicación original del usuario es la referencia principal; este documento reúne requisitos recuperados del historial y de las imágenes guardadas. No sustituir la aplicación por una interfaz genérica ni tratar un HTML como si fuera equivalente a la APK sin comprobarlo.
+Esta carpeta es el espacio de reconstrucción. Fuente única de la nueva app: la APK original del usuario `app-debug(3).apk` recuperada como `app-debug(3)(1).apk`. No reciclar ni copiar interfaces, carátulas, código o recursos de otras aplicaciones que se hicieron en conversaciones anteriores. Los únicos recursos de referencia adicionales son las imágenes y explicaciones que el usuario envió para SC LIVE 2. No sustituir la app por una interfaz genérica ni tratar un HTML distinto como equivalente a la APK.
 
 ## 1. Fuente de verdad y preservación
 - APK original recuperada del historial/Library: `app-debug(3)(1).apk` (subida por el usuario, 2,247,521 bytes); `base.apk` es idéntica byte por byte. SHA-256: `1df05cea2d059ab9aed953135ec4a983694dd5ce41192b82b5a6ab33ce6056ac`. Se extrajo `assets/index.html` (84,352 bytes) y se inspeccionó. La fuente original ahora sí está disponible en el entorno de trabajo en `/mnt/data/sc-live2-original-apk/`; no confundirla con los APKs de compilación generados por el asistente.
@@ -68,8 +68,16 @@ Esta carpeta es el espacio de reconstrucción. La aplicación original del usuar
 - `1000045024.jpg`: captura del diseño previo de SC AMPLIFICATION; muestra los cuatro controles, estados de POWER, valores dB y medidores por banda.
 - `1000045025.jpg` y `1000045028.jpg`: capturas de salida de audio, estado térmico, presets y controles de protección.
 - `1000045023.jpg`: captura de una propuesta anterior rotulada DriveRack PA2; sirve como referencia de una interfaz previa, pero no cambia el modelo físico objetivo DriveRack 260.
-- `1000045027.jpg`: fotografía de amplificador MTE CA32; referencia visual de equipo físico, no branding para SC AMPLIFICATION.
+- `1000045027.jpg`: fotografía del amplificador MTE Audio CA32 enviada por el usuario; referencia física para el aspecto del amplificador SC, no para copiar la marca MTE como nombre de la interfaz. La interfaz se llamará SC AMPLIFICATION / AMPLIFICADOR SC.
 - `1000045021.jpg`: captura de interfaz DJ con Browser abierto, útil para recordar distribución y controles.
 
 ## 9. Criterio de aceptación
 No declarar una función terminada solo porque compila. Verificar compilación, instalación, visualización en móvil, funcionamiento real de audio, persistencia de presets y que ningún módulo recorte/oculte decks. Registrar qué se comprobó y qué queda pendiente. No reemplazar la APK original por una reconstrucción especulativa.
+
+
+## Instrucción de origen exclusiva
+- No importar componentes ni recursos de otras apps anteriores (incluidas variantes de DJ de pruebas, carátulas alternativas o diseños ajenos).
+- La nueva aplicación se reconstruye desde la APK original `app-debug(3).apk` del usuario. Mantener copia inalterada de esa APK como respaldo y trabajar sobre una copia extraída.
+- La fotografía MTE Audio CA32 (`1000045027.jpg`) se usa como referencia del equipo amplificador; la identidad gráfica de los módulos será SC AMPLIFICATION / AMPLIFICADOR SC.
+- La fotografía frontal `1000045026.webp` es la referencia de hardware para SC RACK. El panel de software debe llamarse SC RACK (no SET DRIVER RACK, no dbx PA2).
+- El HTML `assets/index.html` extraído de la APK es la base real. El HTML alternativo de 132 KB recuperado de otra conversación no se debe reciclar como fuente de la nueva app.
