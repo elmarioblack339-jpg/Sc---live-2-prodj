@@ -1,7 +1,7 @@
 name: Build SC LIVE 2 APK
 on:
   push:
-    branches: [sc-live2-build]
+    branches: [sc-live2-build, sc-live2-rebuild-clean]
   workflow_dispatch:
 permissions:
   contents: read
@@ -17,6 +17,10 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+      - name: Use clean reference implementation
+        run: |
+          mkdir -p app/src/main/assets
+          cp rebuild-reference/index.html app/src/main/assets/index.html
       - name: Build debug APK (retry transient repository failures)
         shell: bash
         run: |
