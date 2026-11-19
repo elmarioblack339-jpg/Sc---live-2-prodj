@@ -347,7 +347,7 @@ class MainActivity : ComponentActivity() {
             settings.domStorageEnabled = true
             settings.loadsImagesAutomatically = true
             settings.javaScriptCanOpenWindowsAutomatically = true
-            settings.mediaPlaybackRequiresUserGesture = true
+            settings.mediaPlaybackRequiresUserGesture = false
             webViewClient = WebViewClient()
             webChromeClient = WebChromeClient()
         }
