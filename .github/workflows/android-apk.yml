@@ -25,6 +25,8 @@ jobs:
           }
           mkdir -p app/src/main/assets
           cp rebuild-reference/original-apk/assets/index.html app/src/main/assets/index.html
+      - name: Apply SC AMPLIFICATION phase 1
+        run: python3 rebuild-reference/patches/phase-1-amplifiers.py
       - name: Build debug APK (retry transient repository failures)
         shell: bash
         run: |
