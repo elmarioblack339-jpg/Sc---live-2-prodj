@@ -17,10 +17,14 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Use clean reference implementation
+      - name: Require the original APK source
         run: |
+          test -s rebuild-reference/original-apk/assets/index.html || {
+            echo "::error::The original app-debug(3).apk source has not yet been placed in rebuild-reference/original-apk/assets/index.html. Refusing to build from an unrelated/alternate app."
+            exit 1
+          }
           mkdir -p app/src/main/assets
-          cp rebuild-reference/index.html app/src/main/assets/index.html
+          cp rebuild-reference/original-apk/assets/index.html app/src/main/assets/index.html
       - name: Build debug APK (retry transient repository failures)
         shell: bash
         run: |
