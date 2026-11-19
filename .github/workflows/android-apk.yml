@@ -60,10 +60,10 @@ jobs:
           from pathlib import Path
           import re
           html = Path("app/src/main/assets/index.html").read_text(encoding="utf-8")
-          scripts = re.findall(r"<script(?:\\s[^>]*)?>(.*?)</script>", html, flags=re.S)
+          scripts = re.findall(r"<script(?:\s[^>]*)?>(.*?)</script>", html, flags=re.S)
           if not scripts:
               raise SystemExit("No inline JavaScript was found")
-          Path("/tmp/sc-live2-inline.js").write_text("\\n".join(scripts), encoding="utf-8")
+          Path("/tmp/sc-live2-inline.js").write_text("\n".join(scripts), encoding="utf-8")
           if "recChunks" in html or "NativeAudio.saveRecording" in html:
               raise SystemExit("The old whole-session in-memory REC implementation returned")
           for method in ("beginRecording", "appendRecordingChunk", "finishRecording"):
