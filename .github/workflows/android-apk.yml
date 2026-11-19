@@ -28,7 +28,7 @@ jobs:
             exit 1
           }
           grep -q 'ampFaceplate' app/src/main/assets/index.html || {
-            echo "::error::The functional MTE CA32 front-panel interface is missing."
+            echo "::error::The functional SC AMPLIFICATION front-panel interface is missing."
             exit 1
           }
           grep -q 'ampBassDial' app/src/main/assets/index.html
@@ -41,6 +41,10 @@ jobs:
           grep -q 'ampTrebleMeter' app/src/main/assets/index.html
           grep -q "M.bassSplit1=bq('lowpass',125" app/src/main/assets/index.html
           grep -q 'SC RACK · DSP / DRIVE RACK 260' app/src/main/assets/index.html
+          if grep -q 'MTE AUDIO\|MTE CA32\|dbx' app/src/main/assets/index.html; then
+            echo "::error::Legacy amplifier or processor branding remains in the interface."
+            exit 1
+          fi
           if grep -q 'id="ampBassCut"\|id="ampMidBassCut"\|id="ampMidCut"\|id="ampTrebleCut"' app/src/main/assets/index.html; then
             echo "::error::The old manual band-cut controls must not return."
             exit 1
