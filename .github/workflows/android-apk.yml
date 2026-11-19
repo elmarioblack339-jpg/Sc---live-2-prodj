@@ -54,6 +54,26 @@ jobs:
             echo "::error::A decorative amplifier photo must not be used."
             exit 1
           fi
+      - name: Validate embedded SC LIVE 2 JavaScript and REC bridge
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path("app/src/main/assets/index.html").read_text(encoding="utf-8")
+          scripts = re.findall(r"<script(?:\\s[^>]*)?>(.*?)</script>", html, flags=re.S)
+          if not scripts:
+              raise SystemExit("No inline JavaScript was found")
+          Path("/tmp/sc-live2-inline.js").write_text("\\n".join(scripts), encoding="utf-8")
+          if "recChunks" in html or "NativeAudio.saveRecording" in html:
+              raise SystemExit("The old whole-session in-memory REC implementation returned")
+          for method in ("beginRecording", "appendRecordingChunk", "finishRecording"):
+              if f"NativeAudio.{method}" not in html:
+                  raise SystemExit(f"Missing streaming REC bridge call: {method}")
+          PY
+          node --check /tmp/sc-live2-inline.js
+          grep -q 'fun beginRecording' app/src/main/java/com/sclive2/dj/MainActivity.kt
+          grep -q 'fun appendRecordingChunk' app/src/main/java/com/sclive2/dj/MainActivity.kt
+          grep -q 'fun finishRecording' app/src/main/java/com/sclive2/dj/MainActivity.kt
       - name: Build debug APK (retry transient repository failures)
         shell: bash
         run: |
