@@ -23,8 +23,18 @@ jobs:
             echo "::error::The exact source extracted from the 2,247,521-byte reference APK is required."
             exit 1
           }
-          mkdir -p app/src/main/assets
-          cp rebuild-reference/original-apk/assets/index.html app/src/main/assets/index.html
+          test -s app/src/main/assets/index.html || {
+            echo "::error::The working SC LIVE 2 interface is missing."
+            exit 1
+          }
+          test -s app/src/main/assets/mte-ca32.webp || {
+            echo "::error::The MTE CA32 amplifier image is missing."
+            exit 1
+          }
+          grep -q 'mte-ca32.webp' app/src/main/assets/index.html || {
+            echo "::error::The MTE CA32 image is not referenced by the working interface."
+            exit 1
+          }
       - name: Build debug APK (retry transient repository failures)
         shell: bash
         run: |
