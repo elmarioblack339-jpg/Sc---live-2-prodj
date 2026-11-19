@@ -1,7 +1,7 @@
 name: Build SC LIVE 2 APK
 on:
   push:
-    branches: [sc-live2-build, sc-live2-rebuild-clean]
+    branches: [sc-live2-build, sc-live2-rebuild-clean, sc-live2-punto-gasolina]
   workflow_dispatch:
 permissions:
   contents: read
@@ -20,7 +20,7 @@ jobs:
       - name: Require the original APK source
         run: |
           test -s rebuild-reference/original-apk/assets/index.html || {
-            echo "::error::The original app-debug(3).apk source has not yet been placed in rebuild-reference/original-apk/assets/index.html. Refusing to build from an unrelated/alternate app."
+            echo "::error::The exact source extracted from the 2,247,521-byte reference APK is required."
             exit 1
           }
           mkdir -p app/src/main/assets
