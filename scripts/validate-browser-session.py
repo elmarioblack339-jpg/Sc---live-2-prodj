@@ -34,8 +34,9 @@ library_start = browser.index('addBrowserButton(actions, "BIBLIOTECA"')
 library_end = browser.index('addBrowserButton(actions, "CERRAR"', library_start)
 library_block = browser[library_start:library_end]
 assert "window.openLibrary" in library_block
-assert library_block.index("webView.evaluateJavascript") < library_block.index("dialog.hide()"), \
-    "The local library must open before the Google dialog is hidden"
+assert "webView.evaluateJavascript" in library_block
+assert "dialog.hide()" not in library_block and "dialog.dismiss()" not in library_block, \
+    "Opening the local library must keep the Google Browser window visible"
 
 close_start = browser.index('addBrowserButton(actions, "CERRAR"')
 close_end = browser.index("        root.addView(actions)", close_start)
