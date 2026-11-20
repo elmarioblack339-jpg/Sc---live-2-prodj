@@ -162,6 +162,7 @@ class MainActivity : ComponentActivity() {
         @JavascriptInterface
         fun playNativeDsp(uri: String, title: String) {
             runOnUiThread {
+                startPlaybackForeground()
                 val ok = playbackService?.player?.play(uri, title) == true
                 webView.evaluateJavascript("window.onNativeDspStart && window.onNativeDspStart($ok);", null)
             }
