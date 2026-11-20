@@ -181,7 +181,7 @@ class MainActivity : ComponentActivity() {
         }
         @JavascriptInterface fun pauseNativeDsp() { runOnUiThread { playbackService?.player?.pause() } }
         @JavascriptInterface fun resumeNativeDsp() { runOnUiThread { playbackService?.player?.resume() } }
-        @JavascriptInterface fun stopNativeDsp() { runOnUiThread { playbackService?.player?.stop() } }
+        @JavascriptInterface fun stopNativeDsp() { runOnUiThread { playbackService?.let { it.player.stop(); it.stopPlaybackForeground() } } }
         @JavascriptInterface fun seekNativeDspBy(deltaMs: Long) { runOnUiThread { playbackService?.player?.seekBy(deltaMs) } }
         @JavascriptInterface fun seekNativeDspTo(positionMs: Long) { runOnUiThread { playbackService?.player?.seekTo(positionMs) } }
         @JavascriptInterface fun getNativeDspStatus(): String = playbackService?.player?.status() ?: JSONObject().put("state", "UNAVAILABLE").toString()
