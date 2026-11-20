@@ -73,6 +73,7 @@ class MainActivity : ComponentActivity() {
     private var networkLabel: TextView? = null
     private var batteryLabel: TextView? = null
     private var batteryReceiver: BroadcastReceiver? = null
+    private var powerStateReceiver: BroadcastReceiver? = null
     private var lastCpuTime = android.os.Process.getElapsedCpuTime()
     private var lastCpuWall = SystemClock.elapsedRealtime()
     private val uiHandler = Handler(Looper.getMainLooper())
@@ -647,6 +648,30 @@ class MainActivity : ComponentActivity() {
             }
         }
         setContentView(webView)
+        powerStateReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val connected = when (intent?.action) {
+                    Intent.ACTION_POWER_CONNECTED -> true
+                    Intent.ACTION_POWER_DISCONNECTED -> false
+                    else -> return
+                }
+                if (::webView.isInitialized) {
+                    webView.post {
+                        webView.evaluateJavascript(
+                            "window.onPowerConnectionChanged && window.onPowerConnectionChanged($connected);",
+                            null
+                        )
+                    }
+                }
+            }
+        }
+        registerReceiver(
+            powerStateReceiver,
+            IntentFilter().apply {
+                addAction(Intent.ACTION_POWER_CONNECTED)
+                addAction(Intent.ACTION_POWER_DISCONNECTED)
+            }
+        )
         if (savedInstanceState == null) {
             webView.loadUrl("file:///android_asset/index.html")
         } else {
@@ -667,6 +692,8 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        powerStateReceiver?.let { try { unregisterReceiver(it) } catch (_: Exception) { } }
+        powerStateReceiver = null
         filePathCallback?.onReceiveValue(null)
         filePathCallback = null
         browserDialog?.dismiss()
