@@ -53,7 +53,11 @@ jobs:
           grep -q 'class="ampFaceBrand">SC AMPLIFICATION' app/src/main/assets/index.html
           grep -q 'ampLowMeter' app/src/main/assets/index.html
           grep -q 'ampHighMeter' app/src/main/assets/index.html
-          grep -q "M.drBands=\[\['LOW 1',25,90,'low'\],\['LOW 2',90,300,'low'\],\['MID 1',300,500,'high'\],\['MID 2',500,1000,'high'\],\['HIGH 1',1000,10000,'high'\],\['HIGH 2',10000,20000,'high'\]\]" app/src/main/assets/index.html
+          grep -q 'M.drLowFilters=' app/src/main/assets/index.html
+          grep -q 'M.drHighFilters=' app/src/main/assets/index.html
+          grep -q 'M.drSum=ctx.createChannelMerger(2)' app/src/main/assets/index.html
+          grep -q 'crossoverSlope' app/src/main/assets/index.html
+          grep -q 'crossoverHz' app/src/main/java/com/sclive2/dj/ScLiveDspAudioProcessor.kt
           grep -q 'advancedSettingsLock' app/src/main/assets/index.html
           grep -q 'eqMode.*parametric' app/src/main/assets/index.html
           grep -q 'SC RACK · DSP / DRIVE RACK 260' app/src/main/assets/index.html
