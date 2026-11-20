@@ -103,11 +103,14 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
             val q = if (cfg.eqParametric) cfg.eqQ[index] else 1f
             peakingCoefficients(frequency, cfg.eqGainsDb[index], q, sampleRate)
         }
+        val splitHz = cfg.crossoverHz.coerceIn(90f, 400f)
+        val bandLow = bandLowHz.copyOf().also { it[2] = splitHz }
+        val bandHigh = bandHighHz.copyOf().also { it[1] = splitHz }
         lowCoefficients = Array(6) { band ->
-            Array(4) { stage -> butterworthCoefficients(bandLowHz[band], sampleRate, true) }
+            Array(4) { butterworthCoefficients(bandLow[band], sampleRate, true) }
         }
         highCoefficients = Array(6) { band ->
-            Array(4) { stage -> butterworthCoefficients(bandHighHz[band], sampleRate, false) }
+            Array(4) { butterworthCoefficients(bandHigh[band], sampleRate, false) }
         }
         subsonicCoefficients = butterworthCoefficients(cfg.subsonicHz, sampleRate, true)
     }
