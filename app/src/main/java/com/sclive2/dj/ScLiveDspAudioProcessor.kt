@@ -158,12 +158,14 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
             val lowOut = lowSum / channels
             val highOut = highSum / channels
             if (channels >= 2) {
-                var left = (lowOut * masterGain).coerceIn(-1f, 1f)
-                var right = (highOut * masterGain).coerceIn(-1f, 1f)
+                var left = lowOut * masterGain
+                var right = highOut * masterGain
                 if (cfg.limiterEnabled) {
                     left = softLimit(left)
                     right = softLimit(right)
                 }
+                left = left.coerceIn(-1f, 1f)
+                right = right.coerceIn(-1f, 1f)
                 if (bytesPerSample == 4) {
                     output.putFloat(left)
                     output.putFloat(right)
@@ -172,8 +174,9 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
                     output.putShort((right * 32767f).toInt().coerceIn(-32768, 32767).toShort())
                 }
             } else {
-                var mono = ((lowOut + highOut) * masterGain).coerceIn(-1f, 1f)
+                var mono = (lowOut + highOut) * masterGain
                 if (cfg.limiterEnabled) mono = softLimit(mono)
+                mono = mono.coerceIn(-1f, 1f)
                 if (bytesPerSample == 4) output.putFloat(mono)
                 else output.putShort((mono * 32767f).toInt().coerceIn(-32768, 32767).toShort())
             }
