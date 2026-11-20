@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.Intent
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.ComponentName
+import android.content.ServiceConnection
 import android.content.ContentValues
 import android.os.PowerManager
 import android.os.SystemClock
@@ -48,8 +50,20 @@ import androidx.media3.common.util.UnstableApi
 
 class MainActivity : ComponentActivity() {
     private lateinit var webView: WebView
-    @OptIn(UnstableApi::class)
-    private var nativeDspPlayer: ScLiveNativePlayer? = null
+    private var playbackService: ScLivePlaybackService? = null
+    private var playbackBound = false
+    private val playbackConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, binder: android.os.IBinder?) {
+            playbackService = (binder as? ScLivePlaybackService.LocalBinder)?.service
+        }
+        override fun onServiceDisconnected(name: ComponentName?) { playbackService = null }
+    }
+    private fun startPlaybackForeground() {
+        val intent = Intent(this, ScLivePlaybackService::class.java)
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= 26) startForegroundService(intent) else startService(intent)
+        } catch (_: Exception) { }
+    }
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
     private var browserDialog: Dialog? = null
     private var browserWebView: WebView? = null
@@ -84,7 +98,8 @@ class MainActivity : ComponentActivity() {
                 if (cursor.moveToFirst()) cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME)) else null
             } ?: "Audio DSP"
         } catch (_: Exception) { "Audio DSP" }
-        val ok = nativeDspPlayer?.play(uri.toString(), title) == true
+        startPlaybackForeground()
+        val ok = playbackService?.player?.play(uri.toString(), title) == true
         webView.evaluateJavascript("window.onNativeDspStart && window.onNativeDspStart($ok);", null)
     }
 
@@ -147,7 +162,7 @@ class MainActivity : ComponentActivity() {
         @JavascriptInterface
         fun playNativeDsp(uri: String, title: String) {
             runOnUiThread {
-                val ok = nativeDspPlayer?.play(uri, title) == true
+                val ok = playbackService?.player?.play(uri, title) == true
                 webView.evaluateJavascript("window.onNativeDspStart && window.onNativeDspStart($ok);", null)
             }
         }
@@ -163,17 +178,17 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        @JavascriptInterface fun pauseNativeDsp() { runOnUiThread { nativeDspPlayer?.pause() } }
-        @JavascriptInterface fun resumeNativeDsp() { runOnUiThread { nativeDspPlayer?.resume() } }
-        @JavascriptInterface fun stopNativeDsp() { runOnUiThread { nativeDspPlayer?.stop() } }
-        @JavascriptInterface fun seekNativeDspBy(deltaMs: Long) { runOnUiThread { nativeDspPlayer?.seekBy(deltaMs) } }
-        @JavascriptInterface fun seekNativeDspTo(positionMs: Long) { runOnUiThread { nativeDspPlayer?.seekTo(positionMs) } }
-        @JavascriptInterface fun getNativeDspStatus(): String = nativeDspPlayer?.status() ?: JSONObject().put("state", "UNAVAILABLE").toString()
+        @JavascriptInterface fun pauseNativeDsp() { runOnUiThread { playbackService?.player?.pause() } }
+        @JavascriptInterface fun resumeNativeDsp() { runOnUiThread { playbackService?.player?.resume() } }
+        @JavascriptInterface fun stopNativeDsp() { runOnUiThread { playbackService?.player?.stop() } }
+        @JavascriptInterface fun seekNativeDspBy(deltaMs: Long) { runOnUiThread { playbackService?.player?.seekBy(deltaMs) } }
+        @JavascriptInterface fun seekNativeDspTo(positionMs: Long) { runOnUiThread { playbackService?.player?.seekTo(positionMs) } }
+        @JavascriptInterface fun getNativeDspStatus(): String = playbackService?.player?.status() ?: JSONObject().put("state", "UNAVAILABLE").toString()
         @JavascriptInterface
         fun setNativeDspSettings(json: String) {
             val obj = runCatching { JSONObject(json) }.getOrNull() ?: return
-            val current = nativeDspPlayer?.dsp?.currentSettings() ?: return
-            nativeDspPlayer?.dsp?.updateSettings(current.copy(
+            val current = playbackService?.player?.dsp?.currentSettings() ?: return
+            playbackService?.player?.dsp?.updateSettings(current.copy(
                 enabled = obj.optBoolean("enabled", current.enabled),
                 lowDb = obj.optDouble("lowDb", current.lowDb.toDouble()).toFloat(),
                 lowMidDb = obj.optDouble("lowMidDb", current.lowMidDb.toDouble()).toFloat(),
@@ -550,7 +565,7 @@ class MainActivity : ComponentActivity() {
     @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        nativeDspPlayer = runCatching { ScLiveNativePlayer(this) }.getOrNull()
+        playbackBound = bindService(Intent(this, ScLivePlaybackService::class.java), playbackConnection, Context.BIND_AUTO_CREATE)
         requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         @Suppress("DEPRECATION")
@@ -657,8 +672,9 @@ class MainActivity : ComponentActivity() {
         uiHandler.removeCallbacks(networkUpdater)
         webView.stopLoading()
         webView.destroy()
-        nativeDspPlayer?.release()
-        nativeDspPlayer = null
+        if (playbackBound) { try { unbindService(playbackConnection) } catch (_: Exception) { } }
+        playbackBound = false
+        playbackService = null
         super.onDestroy()
     }
 }
