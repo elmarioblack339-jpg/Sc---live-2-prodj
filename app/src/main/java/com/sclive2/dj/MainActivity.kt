@@ -550,14 +550,11 @@ class MainActivity : ComponentActivity() {
             dialog.hide()
         }, Color.rgb(28, 125, 76))
         addBrowserButton(actions, "BIBLIOTECA", {
-            // Primero abrir la biblioteca en el WebView principal y ocultar Google
-            // solo cuando JavaScript confirme que ejecutó openLibrary.
+            // Abrir la biblioteca local sin ocultar ni cerrar la ventana de Browser.
             webView.evaluateJavascript(
                 "if (typeof window.openLibrary === 'function') { window.openLibrary(0); (document.getElementById('library')?.classList.contains('show') && !document.getElementById('proMenu')?.classList.contains('show')) ? 'library-opened' : 'library-not-visible'; } else { 'library-missing'; }"
             ) { result ->
-                if (result == "\"library-opened\"") {
-                    dialog.hide()
-                } else {
+                if (result != "\"library-opened\"") {
                     android.widget.Toast.makeText(
                         this@MainActivity,
                         "No se pudo abrir la biblioteca. Browser permanece abierto.",
