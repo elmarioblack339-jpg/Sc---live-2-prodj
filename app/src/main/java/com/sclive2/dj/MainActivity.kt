@@ -73,6 +73,21 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private val nativeDspPicker = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val uri = if (result.resultCode == RESULT_OK) result.data?.data else null
+        if (uri == null) return@registerForActivityResult
+        try { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (_: Exception) { }
+        val title = try {
+            contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME)) else null
+            } ?: "Audio DSP"
+        } catch (_: Exception) { "Audio DSP" }
+        val ok = nativeDspPlayer?.play(uri.toString(), title) == true
+        webView.evaluateJavascript("window.onNativeDspStart && window.onNativeDspStart($ok);", null)
+    }
+
     private val browserAudioPicker = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -134,6 +149,18 @@ class MainActivity : ComponentActivity() {
             runOnUiThread {
                 val ok = nativeDspPlayer?.play(uri, title) == true
                 webView.evaluateJavascript("window.onNativeDspStart && window.onNativeDspStart($ok);", null)
+            }
+        }
+        @JavascriptInterface fun openNativeDspPicker() {
+            runOnUiThread {
+                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    type = "audio/*"
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+                }
+                try { nativeDspPicker.launch(intent) } catch (_: Exception) {
+                    webView.evaluateJavascript("window.onNativeDspStart && window.onNativeDspStart(false);", null)
+                }
             }
         }
         @JavascriptInterface fun pauseNativeDsp() { runOnUiThread { nativeDspPlayer?.pause() } }
