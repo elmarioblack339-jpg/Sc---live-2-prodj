@@ -151,7 +151,14 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
                 sample * highGain
             } else 0f
 
-            var processed = (low + high) * masterGain
+            // Stereo split: LEFT carries LOW only; RIGHT carries MID/HIGH only.
+            // A mono route cannot expose two independent physical outputs, so it receives the sum.
+            val routedSample = if (channels >= 2) {
+                if (channel == 0) low else high
+            } else {
+                low + high
+            }
+            var processed = routedSample * masterGain
             if (cfg.limiterEnabled) processed = softLimit(processed)
             processed = processed.coerceIn(-1f, 1f)
             if (bytesPerSample == 4) output.putFloat(processed)
