@@ -621,7 +621,7 @@ const COVER_SIZE_KEY='SC2_COVER_SIZE',COVER_BG_KEY='SC2_COVER_BG';let coverSize=
     setTimeout(()=>{if(master&&ctx){master.gain.setTargetAtTime(.0001,ctx.currentTime,.045);setTimeout(()=>{try{ctx.close()}catch(e){}},260);}},7150);
    }catch(e){started=false;}
   },
-  stop:function(){try{if(master&&ctx){master.gain.cancelScheduledValues(ctx.currentTime);master.gain.setTargetAtTime(.0001,ctx.currentTime,.035);setTimeout(()=>{try{ctx.close()}catch(e){}},220);}}}catch(e){}}
+  stop:function(){try{if(master&&ctx){master.gain.cancelScheduledValues(ctx.currentTime);master.gain.setTargetAtTime(.0001,ctx.currentTime,.035);setTimeout(()=>{try{ctx.close()}catch(e){}},220);}}catch(e){}}
  };
 })();
 
