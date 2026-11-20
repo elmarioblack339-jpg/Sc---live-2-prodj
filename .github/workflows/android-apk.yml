@@ -48,16 +48,14 @@ jobs:
             echo "::error::The functional SC AMPLIFICATION front-panel interface is missing."
             exit 1
           }
-          grep -q 'ampBassDial' app/src/main/assets/index.html
+          grep -q 'ampLowVolumeDial' app/src/main/assets/index.html
+          grep -q 'ampHighVolumeDial' app/src/main/assets/index.html
           grep -q 'class="ampFaceBrand">SC AMPLIFICATION' app/src/main/assets/index.html
-          grep -q 'ampMidBassDial' app/src/main/assets/index.html
-          grep -q 'ampMidDial' app/src/main/assets/index.html
-          grep -q 'ampTrebleDial' app/src/main/assets/index.html
-          grep -q 'ampBassMeter' app/src/main/assets/index.html
-          grep -q 'ampMidBassMeter' app/src/main/assets/index.html
-          grep -q 'ampMidMeter' app/src/main/assets/index.html
-          grep -q 'ampTrebleMeter' app/src/main/assets/index.html
-          grep -q "M.bassSplit1=bq('lowpass',80" app/src/main/assets/index.html
+          grep -q 'ampLowMeter' app/src/main/assets/index.html
+          grep -q 'ampHighMeter' app/src/main/assets/index.html
+          grep -q "M.drBands=\[\['LOW 1',25,80,'low'\],\['LOW 2',90,240,'low'\],\['MID 1',300,400,'high'\],\['MID 2',500,700,'high'\],\['HIGH 1',1000,4000,'high'\],\['HIGH 2',10000,16000,'high'\]\]" app/src/main/assets/index.html
+          grep -q 'advancedSettingsLock' app/src/main/assets/index.html
+          grep -q 'eqMode.*parametric' app/src/main/assets/index.html
           grep -q 'SC RACK · DSP / DRIVE RACK 260' app/src/main/assets/index.html
           if grep -q 'MTE AUDIO\|MTE CA32\|dbx' app/src/main/assets/index.html; then
             echo "::error::Legacy amplifier or processor branding remains in the interface."
