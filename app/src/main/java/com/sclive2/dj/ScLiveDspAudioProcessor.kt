@@ -7,45 +7,38 @@ import androidx.media3.common.util.UnstableApi
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.PI
+import kotlin.math.exp
 import kotlin.math.pow
 
 /**
- * PCM-only SC LIVE 2 processing stage for the independent native player.
- *
- * This processor deliberately does not attach an Android global/session-0 effect.
- * It processes only PCM buffers delivered through the native player's Media3 sink.
- * Settings can be changed while playback is running.
+ * Six-output DriveRack crossover for the independent native player.
+ * Each output receives only its declared frequency interval; gaps remain
+ * intentionally unassigned, matching the SC LIVE 2 DriveRack configuration.
  */
 @UnstableApi
 class ScLiveDspAudioProcessor : BaseAudioProcessor() {
     data class Settings(
         val enabled: Boolean = false,
-        val lowDb: Float = 0f,
-        val lowMidDb: Float = 0f,
-        val highMidDb: Float = 0f,
-        val highDb: Float = 0f,
-        val lowCrossoverHz: Float = 180f,
-        val highCrossoverHz: Float = 5000f,
+        val outputGainsDb: List<Float> = listOf(0f, 0f, 0f, 0f, 0f, 0f),
         val masterDb: Float = 0f,
         val limiterEnabled: Boolean = true
     )
 
+    private val bandLowHz = floatArrayOf(25f, 90f, 300f, 500f, 1000f, 10000f)
+    private val bandHighHz = floatArrayOf(80f, 240f, 400f, 700f, 4000f, 16000f)
+
     @Volatile private var settings = Settings()
-    private var lowState = FloatArray(0)
-    private var lowMidState = FloatArray(0)
-    private var highMidState = FloatArray(0)
-    private var lowAlpha = 0f
-    private var lowMidAlpha = 0f
-    private var highMidAlpha = 0f
+    private var lowState = Array(6) { FloatArray(0) }
+    private var highState = Array(6) { FloatArray(0) }
+    private var lowAlpha = FloatArray(6)
+    private var highAlpha = FloatArray(6)
 
     fun updateSettings(value: Settings) {
+        val gains = List(6) { index ->
+            (value.outputGainsDb.getOrNull(index) ?: 0f).coerceIn(-24f, 6f)
+        }
         settings = value.copy(
-            lowDb = value.lowDb.coerceIn(-18f, 12f),
-            lowMidDb = value.lowMidDb.coerceIn(-18f, 12f),
-            highMidDb = value.highMidDb.coerceIn(-18f, 12f),
-            highDb = value.highDb.coerceIn(-18f, 12f),
-            lowCrossoverHz = value.lowCrossoverHz.coerceIn(60f, 500f),
-            highCrossoverHz = value.highCrossoverHz.coerceIn(1500f, 10000f),
+            outputGainsDb = gains,
             masterDb = value.masterDb.coerceIn(-18f, 6f)
         )
     }
@@ -62,22 +55,17 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
     }
 
     override fun onFlush() {
-        lowState = FloatArray(inputAudioFormat.channelCount)
-        lowMidState = FloatArray(inputAudioFormat.channelCount)
-        highMidState = FloatArray(inputAudioFormat.channelCount)
+        lowState = Array(6) { FloatArray(inputAudioFormat.channelCount) }
+        highState = Array(6) { FloatArray(inputAudioFormat.channelCount) }
         updateCoefficients()
     }
 
     private fun updateCoefficients() {
-        val sr = inputAudioFormat.sampleRate.toFloat().coerceAtLeast(1f)
-        val lowHz = settings.lowCrossoverHz.coerceIn(60f, 500f)
-        val highHz = settings.highCrossoverHz.coerceIn(1500f, 10000f)
-        // Four bands are split by three low-pass boundaries. The middle
-        // boundary is the geometric midpoint of the two user-set crossovers.
-        val lowMidHz = kotlin.math.sqrt(lowHz * highHz).coerceIn(lowHz + 1f, highHz - 1f)
-        lowAlpha = alphaFor(lowHz, sr)
-        lowMidAlpha = alphaFor(lowMidHz, sr)
-        highMidAlpha = alphaFor(highHz, sr)
+        val sampleRate = inputAudioFormat.sampleRate.toFloat().coerceAtLeast(1f)
+        for (band in 0 until 6) {
+            lowAlpha[band] = alphaFor(bandLowHz[band], sampleRate)
+            highAlpha[band] = alphaFor(bandHighHz[band], sampleRate)
+        }
     }
 
     override fun queueInput(inputBuffer: ByteBuffer) {
@@ -91,31 +79,30 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
             output.flip()
             return
         }
+
         updateCoefficients()
         val channels = inputAudioFormat.channelCount
-        val lowGain = dbToLinear(cfg.lowDb)
-        val lowMidGain = dbToLinear(cfg.lowMidDb)
-        val highMidGain = dbToLinear(cfg.highMidDb)
-        val highGain = dbToLinear(cfg.highDb)
+        val gains = FloatArray(6) { dbToLinear(cfg.outputGainsDb.getOrElse(it) { 0f }) }
         val masterGain = dbToLinear(cfg.masterDb)
 
         repeat(samples) { index ->
             val channel = index % channels
             val input = if (bytesPerSample == 4) inputBuffer.float else inputBuffer.short / 32768f
-            val low = lowState[channel] + lowAlpha * (input - lowState[channel])
-            lowState[channel] = low
-            val lowMidCumulative = lowMidState[channel] + lowMidAlpha * (input - lowMidState[channel])
-            lowMidState[channel] = lowMidCumulative
-            val highMidCumulative = highMidState[channel] + highMidAlpha * (input - highMidState[channel])
-            highMidState[channel] = highMidCumulative
+            var processed = 0f
 
-            val lowMid = lowMidCumulative - low
-            val highMid = highMidCumulative - lowMidCumulative
-            val high = input - highMidCumulative
-            var processed = low * lowGain +
-                lowMid * lowMidGain +
-                highMid * highMidGain +
-                high * highGain
+            for (band in 0 until 6) {
+                val low = lowState[band][channel] +
+                    lowAlpha[band] * (input - lowState[band][channel])
+                lowState[band][channel] = low
+
+                val high = highState[band][channel] +
+                    highAlpha[band] * (input - highState[band][channel])
+                highState[band][channel] = high
+
+                // Difference of the two low-pass signals forms the band-pass interval.
+                processed += (high - low) * gains[band]
+            }
+
             processed *= masterGain
             if (cfg.limiterEnabled) processed = softLimit(processed)
             processed = processed.coerceIn(-1f, 1f)
@@ -127,23 +114,22 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
     }
 
     override fun onReset() {
-        lowState = FloatArray(0)
-        lowMidState = FloatArray(0)
-        highMidState = FloatArray(0)
-        lowAlpha = 0f
-        lowMidAlpha = 0f
-        highMidAlpha = 0f
+        lowState = Array(6) { FloatArray(0) }
+        highState = Array(6) { FloatArray(0) }
+        lowAlpha = FloatArray(6)
+        highAlpha = FloatArray(6)
     }
 
     private fun alphaFor(cutoffHz: Float, sampleRate: Float): Float =
-        (1f - kotlin.math.exp((-2.0 * PI * cutoffHz / sampleRate).toFloat())).coerceIn(0f, 1f)
+        (1f - exp((-2.0 * PI * cutoffHz / sampleRate).toFloat())).coerceIn(0f, 1f)
 
     private fun dbToLinear(db: Float): Float = 10f.pow(db / 20f)
 
     private fun softLimit(sample: Float): Float {
         val magnitude = kotlin.math.abs(sample)
         if (magnitude <= 0.82f) return sample
-        val compressed = 0.82f + 0.18f * (1f - kotlin.math.exp(-((magnitude - 0.82f) / 0.18f)))
+        val compressed = 0.82f + 0.18f *
+            (1f - exp(-((magnitude - 0.82f) / 0.18f)))
         return kotlin.math.sign(sample) * compressed
     }
 }
