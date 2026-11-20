@@ -190,14 +190,17 @@ class MainActivity : ComponentActivity() {
         fun setNativeDspSettings(json: String) {
             val obj = runCatching { JSONObject(json) }.getOrNull() ?: return
             val current = playbackService?.player?.dsp?.currentSettings() ?: return
+            val gainsJson = obj.optJSONArray("outputGains")
+            val gains = List(6) { index ->
+                if (gainsJson != null && index < gainsJson.length()) {
+                    gainsJson.optDouble(index, 0.0).toFloat()
+                } else {
+                    current.outputGainsDb.getOrElse(index) { 0f }
+                }
+            }
             playbackService?.player?.dsp?.updateSettings(current.copy(
                 enabled = obj.optBoolean("enabled", current.enabled),
-                lowDb = obj.optDouble("lowDb", current.lowDb.toDouble()).toFloat(),
-                lowMidDb = obj.optDouble("lowMidDb", current.lowMidDb.toDouble()).toFloat(),
-                highMidDb = obj.optDouble("highMidDb", current.highMidDb.toDouble()).toFloat(),
-                highDb = obj.optDouble("highDb", current.highDb.toDouble()).toFloat(),
-                lowCrossoverHz = obj.optDouble("lowCrossoverHz", current.lowCrossoverHz.toDouble()).toFloat(),
-                highCrossoverHz = obj.optDouble("highCrossoverHz", current.highCrossoverHz.toDouble()).toFloat(),
+                outputGainsDb = gains,
                 masterDb = obj.optDouble("masterDb", current.masterDb.toDouble()).toFloat(),
                 limiterEnabled = obj.optBoolean("limiterEnabled", current.limiterEnabled)
             ))
