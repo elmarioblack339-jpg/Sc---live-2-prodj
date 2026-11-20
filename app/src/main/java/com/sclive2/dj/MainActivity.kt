@@ -159,6 +159,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @Volatile private var lastAudioLibraryDiagnostic: String = "Biblioteca aún no consultada."
+
     inner class AudioBridge {
         @JavascriptInterface
         fun playNativeDsp(uri: String, title: String) {
@@ -243,8 +245,13 @@ class MainActivity : ComponentActivity() {
 
         @JavascriptInterface
         fun getAudioTracks(): String {
-            if (checkSelfPermission(audioPermission()) != PackageManager.PERMISSION_GRANTED) return "[]"
+            val permission = audioPermission()
+            if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+                lastAudioLibraryDiagnostic = "Permiso de audio no concedido (Android ${android.os.Build.VERSION.SDK_INT})."
+                return "[]"
+            }
             val tracks = JSONArray()
+            val seen = HashSet<String>()
             val projection = arrayOf(
                 MediaStore.Audio.Media._ID,
                 MediaStore.Audio.Media.TITLE,
@@ -252,33 +259,70 @@ class MainActivity : ComponentActivity() {
                 MediaStore.Audio.Media.ALBUM,
                 MediaStore.Audio.Media.DURATION
             )
-            try {
-                contentResolver.query(
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    projection,
-                    null,
-                    null,
-                    "${MediaStore.Audio.Media.TITLE} COLLATE NOCASE ASC"
-                )?.use { cursor ->
-                    val idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-                    val titleCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
-                    val artistCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-                    val albumCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
-                    val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-                    while (cursor.moveToNext()) {
-                        val id = cursor.getLong(idCol)
-                        val item = JSONObject()
-                        item.put("uri", Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id.toString()).toString())
-                        item.put("title", cursor.getString(titleCol) ?: "Audio sin título")
-                        item.put("artist", cursor.getString(artistCol) ?: "")
-                        item.put("album", cursor.getString(albumCol) ?: "")
-                        item.put("duration", cursor.getLong(durationCol))
-                        tracks.put(item)
-                    }
+            val volumeNames = try {
+                if (android.os.Build.VERSION.SDK_INT >= 29) MediaStore.getExternalVolumeNames(this@MainActivity).toList().sorted()
+                else listOf("external")
+            } catch (e: Exception) {
+                lastAudioLibraryDiagnostic = "No se pudieron detectar volúmenes: ${e.javaClass.simpleName}: ${e.message ?: "sin detalle"}"
+                listOf("external")
+            }
+            val volumeResults = JSONArray()
+            var totalRows = 0
+            val errors = mutableListOf<String>()
+            for (volume in volumeNames) {
+                val collection = try {
+                    if (android.os.Build.VERSION.SDK_INT >= 29) MediaStore.Audio.Media.getContentUri(volume)
+                    else MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                } catch (e: Exception) {
+                    errors.add("$volume: URI no disponible (${e.message ?: e.javaClass.simpleName})")
+                    continue
                 }
-            } catch (_: Exception) { }
+                var count = 0
+                try {
+                    val cursor = contentResolver.query(
+                        collection, projection, null, null,
+                        "${MediaStore.Audio.Media.TITLE} COLLATE NOCASE ASC"
+                    )
+                    if (cursor == null) {
+                        errors.add("$volume: Android devolvió una consulta vacía (cursor null)")
+                    } else cursor.use {
+                        val idCol = it.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+                        val titleCol = it.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+                        val artistCol = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+                        val albumCol = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
+                        val durationCol = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+                        while (it.moveToNext()) {
+                            val id = it.getLong(idCol)
+                            val uri = Uri.withAppendedPath(collection, id.toString()).toString()
+                            if (!seen.add(uri)) continue
+                            val item = JSONObject()
+                            item.put("uri", uri)
+                            item.put("title", it.getString(titleCol)?.takeIf { value -> value.isNotBlank() } ?: "Audio sin título")
+                            item.put("artist", it.getString(artistCol) ?: "")
+                            item.put("album", it.getString(albumCol) ?: "")
+                            item.put("duration", it.getLong(durationCol))
+                            tracks.put(item)
+                            count++
+                        }
+                    }
+                } catch (e: Exception) {
+                    errors.add("$volume: ${e.javaClass.simpleName}: ${e.message ?: "sin detalle"}")
+                }
+                totalRows += count
+                volumeResults.put(JSONObject().put("volumen", volume).put("canciones", count))
+            }
+            lastAudioLibraryDiagnostic = JSONObject()
+                .put("android", android.os.Build.VERSION.SDK_INT)
+                .put("permiso", permission)
+                .put("volumenes", volumeResults)
+                .put("total", totalRows)
+                .put("errores", JSONArray(errors))
+                .toString()
             return tracks.toString()
         }
+
+        @JavascriptInterface
+        fun getAudioLibraryDiagnostic(): String = lastAudioLibraryDiagnostic
 
         @JavascriptInterface
         fun getPlayableUrl(uriText: String): String =
