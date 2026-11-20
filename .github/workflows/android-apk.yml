@@ -53,10 +53,12 @@ jobs:
           grep -q 'class="ampFaceBrand">SC AMPLIFICATION' app/src/main/assets/index.html
           grep -q 'ampLowMeter' app/src/main/assets/index.html
           grep -q 'ampHighMeter' app/src/main/assets/index.html
-          grep -q 'M.drLowFilters=' app/src/main/assets/index.html
-          grep -q 'M.drHighFilters=' app/src/main/assets/index.html
-          grep -q 'M.drSum=ctx.createChannelMerger(2)' app/src/main/assets/index.html
-          grep -q 'crossoverSlope' app/src/main/assets/index.html
+          grep -q "M.drBands=\[\['LOW 1'" app/src/main/assets/index.html
+          grep -q 'M.drBands.forEach' app/src/main/assets/index.html
+          grep -q 'band.hp.connect(band.lp)' app/src/main/assets/index.html
+          grep -q 'bandLowHz' app/src/main/java/com/sclive2/dj/ScLiveDspAudioProcessor.kt
+          grep -q 'outputGainsDb' app/src/main/java/com/sclive2/dj/ScLiveDspAudioProcessor.kt
+          grep -q 'crossoverSlope' app/src/main/java/com/sclive2/dj/ScLiveDspAudioProcessor.kt
           grep -q 'crossoverHz' app/src/main/java/com/sclive2/dj/ScLiveDspAudioProcessor.kt
           grep -q 'advancedSettingsLock' app/src/main/assets/index.html
           grep -q 'eqMode.*parametric' app/src/main/assets/index.html
