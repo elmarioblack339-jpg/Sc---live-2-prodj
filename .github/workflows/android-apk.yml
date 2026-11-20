@@ -57,7 +57,7 @@ jobs:
           grep -q 'ampMidBassMeter' app/src/main/assets/index.html
           grep -q 'ampMidMeter' app/src/main/assets/index.html
           grep -q 'ampTrebleMeter' app/src/main/assets/index.html
-          grep -q "M.bassSplit1=bq('lowpass',125" app/src/main/assets/index.html
+          grep -q "M.bassSplit1=bq('lowpass',80" app/src/main/assets/index.html
           grep -q 'SC RACK · DSP / DRIVE RACK 260' app/src/main/assets/index.html
           if grep -q 'MTE AUDIO\|MTE CA32\|dbx' app/src/main/assets/index.html; then
             echo "::error::Legacy amplifier or processor branding remains in the interface."
