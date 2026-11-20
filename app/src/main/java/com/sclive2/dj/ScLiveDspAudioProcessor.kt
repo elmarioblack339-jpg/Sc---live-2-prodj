@@ -13,9 +13,9 @@ import kotlin.math.pow
 import kotlin.math.sin
 
 /**
- * Two-way DriveRack crossover for the independent native player.
- * LOW receives a subsonic high-pass followed by a Linkwitz-Riley-style low-pass.
- * MID/HIGH receives the complementary Linkwitz-Riley-style high-pass.
+ * Six-band DriveRack processor for the native player.
+ * Each output band has its own HPF, LPF and gain. LOW 1/2 are routed
+ * to the left amplifier feed; MID 1/2 and HIGH 1/2 to the right feed.
  */
 @UnstableApi
 class ScLiveDspAudioProcessor : BaseAudioProcessor() {
@@ -46,14 +46,17 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
         var y1: Float = 0f, var y2: Float = 0f
     )
 
+    private val bandLowHz = floatArrayOf(25f, 90f, 300f, 500f, 1000f, 10000f)
+    private val bandHighHz = floatArrayOf(90f, 300f, 500f, 1000f, 10000f, 20000f)
     private val graphicFreqHz = floatArrayOf(60f, 180f, 350f, 600f, 12000f)
+
     @Volatile private var settings = Settings()
     private var peqCoefficients = Array(5) { identity() }
     private var peqState = Array(5) { Array(0) { BiquadState() } }
-    private var lowPassCoefficients = Array(4) { identity() }
-    private var highPassCoefficients = Array(4) { identity() }
-    private var lowPassState = Array(4) { Array(0) { BiquadState() } }
-    private var highPassState = Array(4) { Array(0) { BiquadState() } }
+    private var lowCoefficients = Array(6) { Array(4) { identity() } }
+    private var highCoefficients = Array(6) { Array(4) { identity() } }
+    private var lowState = Array(6) { Array(4) { Array(0) { BiquadState() } } }
+    private var highState = Array(6) { Array(4) { Array(0) { BiquadState() } } }
     private var subsonicCoefficients = identity()
     private var subsonicState = Array(0) { BiquadState() }
 
@@ -86,8 +89,8 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
     override fun onFlush() {
         val channels = inputAudioFormat.channelCount
         peqState = Array(5) { Array(channels) { BiquadState() } }
-        lowPassState = Array(4) { Array(channels) { BiquadState() } }
-        highPassState = Array(4) { Array(channels) { BiquadState() } }
+        lowState = Array(6) { Array(4) { Array(channels) { BiquadState() } } }
+        highState = Array(6) { Array(4) { Array(channels) { BiquadState() } } }
         subsonicState = Array(channels) { BiquadState() }
         updateCoefficients()
     }
@@ -100,9 +103,13 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
             val q = if (cfg.eqParametric) cfg.eqQ[index] else 1f
             peakingCoefficients(frequency, cfg.eqGainsDb[index], q, sampleRate)
         }
-        lowPassCoefficients = Array(4) { makeLowPassCoefficients(cfg.crossoverHz, sampleRate) }
-        highPassCoefficients = Array(4) { makeHighPassCoefficients(cfg.crossoverHz, sampleRate) }
-        subsonicCoefficients = makeHighPassCoefficients(cfg.subsonicHz, sampleRate)
+        lowCoefficients = Array(6) { band ->
+            Array(4) { stage -> butterworthCoefficients(bandLowHz[band], sampleRate, true) }
+        }
+        highCoefficients = Array(6) { band ->
+            Array(4) { stage -> butterworthCoefficients(bandHighHz[band], sampleRate, false) }
+        }
+        subsonicCoefficients = butterworthCoefficients(cfg.subsonicHz, sampleRate, true)
     }
 
     override fun queueInput(inputBuffer: ByteBuffer) {
@@ -110,6 +117,8 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
         val cfg = settings
         val bytesPerSample = if (inputAudioFormat.encoding == C.ENCODING_PCM_FLOAT) 4 else 2
         val samples = inputBuffer.remaining() / bytesPerSample
+        val channels = inputAudioFormat.channelCount
+        val frames = samples / channels
         val output = replaceOutputBuffer(samples * bytesPerSample).order(ByteOrder.nativeOrder())
         if (!cfg.enabled) {
             output.put(inputBuffer)
@@ -118,77 +127,64 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
         }
 
         updateCoefficients()
-        val channels = inputAudioFormat.channelCount
-        val lowDb = (cfg.outputGainsDb[0] + cfg.outputGainsDb[1]) * 0.5f
-        val highDb = (cfg.outputGainsDb[2] + cfg.outputGainsDb[3] +
-            cfg.outputGainsDb[4] + cfg.outputGainsDb[5]) * 0.25f
-        val lowGain = dbToLinear(lowDb) * cfg.lowAmpVolume
-        val highGain = dbToLinear(highDb) * cfg.highAmpVolume
+        val gains = FloatArray(6) { dbToLinear(cfg.outputGainsDb[it]) }
         val masterGain = dbToLinear(cfg.masterDb)
         val activeStages = when (cfg.crossoverSlope) { 12 -> 1; 48 -> 4; else -> 2 }
 
-        val frames = samples / channels
         repeat(frames) {
             var lowSum = 0f
             var highSum = 0f
-            for (channel in 0 until channels) {
+            repeat(channels) { channel ->
                 val raw = if (bytesPerSample == 4) inputBuffer.float else inputBuffer.short / 32768f
                 var eqSample = raw
                 for (section in 0 until 5) {
                     eqSample = processBiquad(eqSample, peqCoefficients[section], peqState[section][channel])
                 }
 
-                if (cfg.lowAmpOn) {
-                    var low = processBiquad(eqSample, subsonicCoefficients, subsonicState[channel])
-                    for (stage in 0 until activeStages) {
-                        low = processBiquad(low, lowPassCoefficients[stage], lowPassState[stage][channel])
+                for (band in 0 until 6) {
+                    val isLow = band < 2
+                    if ((isLow && !cfg.lowAmpOn) || (!isLow && !cfg.highAmpOn)) continue
+                    var bandSample = eqSample
+                    if (band == 0) {
+                        bandSample = processBiquad(bandSample, subsonicCoefficients, subsonicState[channel])
                     }
-                    lowSum += low * lowGain
-                }
-                if (cfg.highAmpOn) {
-                    var high = eqSample
                     for (stage in 0 until activeStages) {
-                        high = processBiquad(high, highPassCoefficients[stage], highPassState[stage][channel])
+                        bandSample = processBiquad(bandSample, lowCoefficients[band][stage], lowState[band][stage][channel])
+                        bandSample = processBiquad(bandSample, highCoefficients[band][stage], highState[band][stage][channel])
                     }
-                    highSum += high * highGain
+                    val ampVolume = if (isLow) cfg.lowAmpVolume else cfg.highAmpVolume
+                    val bandOutput = bandSample * gains[band] * ampVolume
+                    if (isLow) lowSum += bandOutput else highSum += bandOutput
                 }
             }
 
-            // Sum both source channels to mono for each band, then split LOW left / MID-HIGH right.
-            val lowOut = lowSum / channels
-            val highOut = highSum / channels
+            val lowOut = (lowSum / channels * masterGain).coerceIn(-1f, 1f)
+            val highOut = (highSum / channels * masterGain).coerceIn(-1f, 1f)
             if (channels >= 2) {
-                var left = lowOut * masterGain
-                var right = highOut * masterGain
-                if (cfg.limiterEnabled) {
-                    left = softLimit(left)
-                    right = softLimit(right)
-                }
-                left = left.coerceIn(-1f, 1f)
-                right = right.coerceIn(-1f, 1f)
-                if (bytesPerSample == 4) {
-                    output.putFloat(left)
-                    output.putFloat(right)
-                } else {
-                    output.putShort((left * 32767f).toInt().coerceIn(-32768, 32767).toShort())
-                    output.putShort((right * 32767f).toInt().coerceIn(-32768, 32767).toShort())
-                }
+                val left = if (cfg.limiterEnabled) softLimit(lowOut) else lowOut
+                val right = if (cfg.limiterEnabled) softLimit(highOut) else highOut
+                writeSample(output, left, bytesPerSample)
+                writeSample(output, right, bytesPerSample)
             } else {
-                var mono = (lowOut + highOut) * masterGain
+                var mono = (lowOut + highOut).coerceIn(-1f, 1f)
                 if (cfg.limiterEnabled) mono = softLimit(mono)
-                mono = mono.coerceIn(-1f, 1f)
-                if (bytesPerSample == 4) output.putFloat(mono)
-                else output.putShort((mono * 32767f).toInt().coerceIn(-32768, 32767).toShort())
+                writeSample(output, mono, bytesPerSample)
             }
         }
         inputBuffer.position(inputBuffer.limit())
         output.flip()
     }
 
+    private fun writeSample(output: ByteBuffer, sample: Float, bytesPerSample: Int) {
+        val value = sample.coerceIn(-1f, 1f)
+        if (bytesPerSample == 4) output.putFloat(value)
+        else output.putShort((value * 32767f).toInt().coerceIn(-32768, 32767).toShort())
+    }
+
     override fun onReset() {
         peqState = Array(5) { Array(0) { BiquadState() } }
-        lowPassState = Array(4) { Array(0) { BiquadState() } }
-        highPassState = Array(4) { Array(0) { BiquadState() } }
+        lowState = Array(6) { Array(4) { Array(0) { BiquadState() } } }
+        highState = Array(6) { Array(4) { Array(0) { BiquadState() } } }
         subsonicState = Array(0) { BiquadState() }
     }
 
@@ -202,12 +198,6 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
         return y
     }
 
-    private fun makeLowPassCoefficients(freqHz: Float, sampleRate: Float): BiquadCoefficients =
-        butterworthCoefficients(freqHz, sampleRate, false)
-
-    private fun makeHighPassCoefficients(freqHz: Float, sampleRate: Float): BiquadCoefficients =
-        butterworthCoefficients(freqHz, sampleRate, true)
-
     private fun butterworthCoefficients(freqHz: Float, sampleRate: Float, highPass: Boolean): BiquadCoefficients {
         val frequency = freqHz.coerceIn(10f, sampleRate * 0.45f)
         val omega = 2.0 * PI * frequency / sampleRate
@@ -219,12 +209,10 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
         } else {
             Triple((1.0 - cosW) / 2.0, 1.0 - cosW, (1.0 - cosW) / 2.0)
         }
-        val b0 = coeffs.first
-        val b1 = coeffs.second
-        val b2 = coeffs.third
         return BiquadCoefficients(
-            (b0 / a0).toFloat(), (b1 / a0).toFloat(), (b2 / a0).toFloat(),
-            (-2.0 * cosW / a0).toFloat(), ((1.0 - alpha) / a0).toFloat()
+            (coeffs.first / a0).toFloat(), (coeffs.second / a0).toFloat(),
+            (coeffs.third / a0).toFloat(), (-2.0 * cosW / a0).toFloat(),
+            ((1.0 - alpha) / a0).toFloat()
         )
     }
 
