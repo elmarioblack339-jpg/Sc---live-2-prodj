@@ -32,5 +32,5 @@ android {
 }
 dependencies {
     implementation("androidx.activity:activity-ktx:1.10.0")
-    implementation("androidx.media3:media3-exoplayer:1.11.1")
+    implementation("androidx.media3:media3-exoplayer:1.5.1")
 }
