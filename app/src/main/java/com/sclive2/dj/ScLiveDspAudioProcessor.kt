@@ -59,7 +59,7 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
         return inputAudioFormat
     }
 
-    override fun onFlush(streamMetadata: AudioProcessor.StreamMetadata) {
+    override fun onFlush() {
         lowState = FloatArray(inputAudioFormat.channelCount)
         highState = FloatArray(inputAudioFormat.channelCount)
         updateCoefficients()
