@@ -1,7 +1,7 @@
 name: Build SC LIVE 2 APK
 on:
   push:
-    branches: [sc-live2-build, sc-live2-rebuild-clean, sc-live2-punto-gasolina, sc-live2-rank-stems-browser-rec]
+    branches: [sc-live2-build, sc-live2-rebuild-clean, sc-live2-punto-gasolina, sc-live2-rank-stems-browser-rec, feature/sc-rack-pro-geq31]
   workflow_dispatch:
 permissions:
   contents: read
