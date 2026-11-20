@@ -30,4 +30,4 @@ android {
     }
     kotlinOptions { jvmTarget = "17" }
 }
-dependencies { implementation("androidx.activity:activity-ktx:1.10.0") }
+dependencies {\n    implementation("androidx.activity:activity-ktx:1.10.0")\n    implementation("androidx.media3:media3-exoplayer:1.11.1")\n}
