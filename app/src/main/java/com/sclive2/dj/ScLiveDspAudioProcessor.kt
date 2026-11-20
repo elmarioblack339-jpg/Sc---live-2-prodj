@@ -100,9 +100,9 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
             val q = if (cfg.eqParametric) cfg.eqQ[index] else 1f
             peakingCoefficients(frequency, cfg.eqGainsDb[index], q, sampleRate)
         }
-        lowPassCoefficients = Array(4) { lowPassCoefficients(cfg.crossoverHz, sampleRate) }
-        highPassCoefficients = Array(4) { highPassCoefficients(cfg.crossoverHz, sampleRate) }
-        subsonicCoefficients = highPassCoefficients(cfg.subsonicHz, sampleRate)
+        lowPassCoefficients = Array(4) { makeLowPassCoefficients(cfg.crossoverHz, sampleRate) }
+        highPassCoefficients = Array(4) { makeHighPassCoefficients(cfg.crossoverHz, sampleRate) }
+        subsonicCoefficients = makeHighPassCoefficients(cfg.subsonicHz, sampleRate)
     }
 
     override fun queueInput(inputBuffer: ByteBuffer) {
@@ -178,10 +178,10 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
         return y
     }
 
-    private fun lowPassCoefficients(freqHz: Float, sampleRate: Float): BiquadCoefficients =
+    private fun makeLowPassCoefficients(freqHz: Float, sampleRate: Float): BiquadCoefficients =
         butterworthCoefficients(freqHz, sampleRate, false)
 
-    private fun highPassCoefficients(freqHz: Float, sampleRate: Float): BiquadCoefficients =
+    private fun makeHighPassCoefficients(freqHz: Float, sampleRate: Float): BiquadCoefficients =
         butterworthCoefficients(freqHz, sampleRate, true)
 
     private fun butterworthCoefficients(freqHz: Float, sampleRate: Float, highPass: Boolean): BiquadCoefficients {
@@ -190,11 +190,14 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
         val cosW = cos(omega)
         val alpha = sin(omega) / (2.0 * 0.70710678118)
         val a0 = 1.0 + alpha
-        val (b0, b1, b2) = if (highPass) {
-            ((1.0 + cosW) / 2.0, -(1.0 + cosW), (1.0 + cosW) / 2.0)
+        val coeffs = if (highPass) {
+            Triple((1.0 + cosW) / 2.0, -(1.0 + cosW), (1.0 + cosW) / 2.0)
         } else {
-            ((1.0 - cosW) / 2.0, 1.0 - cosW, (1.0 - cosW) / 2.0)
+            Triple((1.0 - cosW) / 2.0, 1.0 - cosW, (1.0 - cosW) / 2.0)
         }
+        val b0 = coeffs.first
+        val b1 = coeffs.second
+        val b2 = coeffs.third
         return BiquadCoefficients(
             (b0 / a0).toFloat(), (b1 / a0).toFloat(), (b2 / a0).toFloat(),
             (-2.0 * cosW / a0).toFloat(), ((1.0 - alpha) / a0).toFloat()
