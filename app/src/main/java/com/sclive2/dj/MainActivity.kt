@@ -190,17 +190,23 @@ class MainActivity : ComponentActivity() {
         fun setNativeDspSettings(json: String) {
             val obj = runCatching { JSONObject(json) }.getOrNull() ?: return
             val current = playbackService?.player?.dsp?.currentSettings() ?: return
-            val gainsJson = obj.optJSONArray("outputGains")
-            val gains = List(6) { index ->
-                if (gainsJson != null && index < gainsJson.length()) {
-                    gainsJson.optDouble(index, 0.0).toFloat()
-                } else {
-                    current.outputGainsDb.getOrElse(index) { 0f }
+            fun readFloatArray(key: String, fallback: List<Float>, size: Int): List<Float> {
+                val array = obj.optJSONArray(key)
+                return List(size) { index ->
+                    if (array != null && index < array.length()) {
+                        array.optDouble(index, fallback.getOrElse(index) { 0f }.toDouble()).toFloat()
+                    } else {
+                        fallback.getOrElse(index) { 0f }
+                    }
                 }
             }
             playbackService?.player?.dsp?.updateSettings(current.copy(
                 enabled = obj.optBoolean("enabled", current.enabled),
-                outputGainsDb = gains,
+                outputGainsDb = readFloatArray("outputGains", current.outputGainsDb, 6),
+                eqGainsDb = readFloatArray("eq", current.eqGainsDb, 5),
+                eqFreqHz = readFloatArray("eqFreq", current.eqFreqHz, 5),
+                eqQ = readFloatArray("eqQ", current.eqQ, 5),
+                eqParametric = obj.optString("eqMode", if (current.eqParametric) "parametric" else "graphic") == "parametric",
                 masterDb = obj.optDouble("masterDb", current.masterDb.toDouble()).toFloat(),
                 limiterEnabled = obj.optBoolean("limiterEnabled", current.limiterEnabled)
             ))
