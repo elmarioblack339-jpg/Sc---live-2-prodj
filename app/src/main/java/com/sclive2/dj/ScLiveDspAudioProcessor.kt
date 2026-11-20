@@ -127,42 +127,56 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
         val masterGain = dbToLinear(cfg.masterDb)
         val activeStages = when (cfg.crossoverSlope) { 12 -> 1; 48 -> 4; else -> 2 }
 
-        repeat(samples) { index ->
-            val channel = index % channels
-            val raw = if (bytesPerSample == 4) inputBuffer.float else inputBuffer.short / 32768f
-            var eqSample = raw
-            for (section in 0 until 5) {
-                eqSample = processBiquad(eqSample, peqCoefficients[section], peqState[section][channel])
+        val frames = samples / channels
+        repeat(frames) {
+            var lowSum = 0f
+            var highSum = 0f
+            for (channel in 0 until channels) {
+                val raw = if (bytesPerSample == 4) inputBuffer.float else inputBuffer.short / 32768f
+                var eqSample = raw
+                for (section in 0 until 5) {
+                    eqSample = processBiquad(eqSample, peqCoefficients[section], peqState[section][channel])
+                }
+
+                if (cfg.lowAmpOn) {
+                    var low = processBiquad(eqSample, subsonicCoefficients, subsonicState[channel])
+                    for (stage in 0 until activeStages) {
+                        low = processBiquad(low, lowPassCoefficients[stage], lowPassState[stage][channel])
+                    }
+                    lowSum += low * lowGain
+                }
+                if (cfg.highAmpOn) {
+                    var high = eqSample
+                    for (stage in 0 until activeStages) {
+                        high = processBiquad(high, highPassCoefficients[stage], highPassState[stage][channel])
+                    }
+                    highSum += high * highGain
+                }
             }
 
-            var low = if (cfg.lowAmpOn) {
-                var sample = processBiquad(eqSample, subsonicCoefficients, subsonicState[channel])
-                for (stage in 0 until activeStages) {
-                    sample = processBiquad(sample, lowPassCoefficients[stage], lowPassState[stage][channel])
+            // Sum both source channels to mono for each band, then split LOW left / MID-HIGH right.
+            val lowOut = lowSum / channels
+            val highOut = highSum / channels
+            if (channels >= 2) {
+                var left = (lowOut * masterGain).coerceIn(-1f, 1f)
+                var right = (highOut * masterGain).coerceIn(-1f, 1f)
+                if (cfg.limiterEnabled) {
+                    left = softLimit(left)
+                    right = softLimit(right)
                 }
-                sample * lowGain
-            } else 0f
-
-            var high = if (cfg.highAmpOn) {
-                var sample = eqSample
-                for (stage in 0 until activeStages) {
-                    sample = processBiquad(sample, highPassCoefficients[stage], highPassState[stage][channel])
+                if (bytesPerSample == 4) {
+                    output.putFloat(left)
+                    output.putFloat(right)
+                } else {
+                    output.putShort((left * 32767f).toInt().coerceIn(-32768, 32767).toShort())
+                    output.putShort((right * 32767f).toInt().coerceIn(-32768, 32767).toShort())
                 }
-                sample * highGain
-            } else 0f
-
-            // Stereo split: LEFT carries LOW only; RIGHT carries MID/HIGH only.
-            // A mono route cannot expose two independent physical outputs, so it receives the sum.
-            val routedSample = if (channels >= 2) {
-                if (channel == 0) low else high
             } else {
-                low + high
+                var mono = ((lowOut + highOut) * masterGain).coerceIn(-1f, 1f)
+                if (cfg.limiterEnabled) mono = softLimit(mono)
+                if (bytesPerSample == 4) output.putFloat(mono)
+                else output.putShort((mono * 32767f).toInt().coerceIn(-32768, 32767).toShort())
             }
-            var processed = routedSample * masterGain
-            if (cfg.limiterEnabled) processed = softLimit(processed)
-            processed = processed.coerceIn(-1f, 1f)
-            if (bytesPerSample == 4) output.putFloat(processed)
-            else output.putShort((processed * 32767f).toInt().coerceIn(-32768, 32767).toShort())
         }
         inputBuffer.position(inputBuffer.limit())
         output.flip()
