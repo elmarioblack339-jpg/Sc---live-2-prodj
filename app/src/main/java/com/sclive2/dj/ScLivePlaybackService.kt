@@ -49,6 +49,12 @@ class ScLivePlaybackService : Service() {
         return START_STICKY
     }
 
+    fun stopPlaybackForeground() {
+        if (Build.VERSION.SDK_INT >= 24) stopForeground(STOP_FOREGROUND_REMOVE)
+        else @Suppress("DEPRECATION") stopForeground(true)
+        stopSelf()
+    }
+
     override fun onDestroy() {
         if (::player.isInitialized) player.release()
         super.onDestroy()
