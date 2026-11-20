@@ -555,9 +555,14 @@ class MainActivity : ComponentActivity() {
             webView.evaluateJavascript(
                 "if (typeof window.openLibrary === 'function') { window.openLibrary(0); 'library-opened'; } else { 'library-missing'; }"
             ) { result ->
-                dialog.hide()
-                if (result != "\"library-opened\"") {
-                    webView.evaluateJavascript("console.error('No se pudo abrir la biblioteca local');", null)
+                if (result == "\"library-opened\"") {
+                    dialog.hide()
+                } else {
+                    android.widget.Toast.makeText(
+                        this@MainActivity,
+                        "No se pudo abrir la biblioteca. Browser permanece abierto.",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         })
