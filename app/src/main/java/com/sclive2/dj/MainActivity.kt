@@ -682,7 +682,14 @@ class MainActivity : ComponentActivity() {
     @Deprecated("Deprecated in Android API")
     override fun onBackPressed() {
         AlertDialog.Builder(this).setMessage("¿Estás seguro de que deseas salir de SC LIVE 2?")
-            .setPositiveButton("Sí") { _, _ -> finish() }
+            .setPositiveButton("Sí") { _, _ ->
+                if (::webView.isInitialized) {
+                    webView.evaluateJavascript("window.prepareAudioForExit && window.prepareAudioForExit();", null)
+                    webView.postDelayed({ finish() }, 140)
+                } else {
+                    finish()
+                }
+            }
             .setNegativeButton("No", null).show()
     }
 
