@@ -338,7 +338,7 @@ function loadNativeTrack(track,deckIndex){const d=D[deckIndex];if(!d||d.loading)
 
 const audioFile=f=>f&&(f.type.startsWith('audio/')||/\\.(mp3|wav|m4a|ogg|flac|aac)$/i.test(f.name));
 function addLibraryFiles(files){[...files].filter(audioFile).forEach(f=>{if(!library.some(x=>x.name===f.name&&x.size===f.size))library.push(f)});renderLibrary()}
-function openLibrary(i){tgt=i;refreshNativeTracks();renderLibrary();lib.classList.add('show')}
+function openLibrary(i){tgt=i;lib.classList.add('show');if(window.NativeAudio&&NativeAudio.requestAudioPermission){NativeAudio.requestAudioPermission()}else{refreshNativeTracks();renderLibrary()}}
 function openOnlineBrowser(){if(!navigator.onLine){msg('Conéctate a internet para usar Browser');return}if(window.NativeAudio&&NativeAudio.openOnlineBrowser){NativeAudio.openOnlineBrowser();return}msg('Browser online requiere Android');}
 function showProMenu(){if(uiLocked){msg('Desbloquea la pantalla para abrir Configuración');return}const p=$('#proMenu');p.classList.add('show');startDeviceStats();}
 $('#proClose').onclick=()=>$('#proMenu').classList.remove('show');$('#menuBack').onclick=()=>$('#proMenu').classList.remove('show');
