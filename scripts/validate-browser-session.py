@@ -53,7 +53,7 @@ assert "softLimit" in dsp
 assert "AudioEffect" not in dsp and "session 0" not in dsp.lower()
 
 gradle = Path("app/build.gradle.kts").read_text(encoding="utf-8")
-assert 'androidx.media3:media3-exoplayer:1.11.1' in gradle
+assert 'androidx.media3:media3-exoplayer:1.5.1' in gradle
 
 print("Native DSP source checks passed: PCM processor, live settings, limiter, Media3 dependency.")
 print("Not covered: player wiring, DriverRack control mapping, Bluetooth hardware output, or YouTube browser audio.")
