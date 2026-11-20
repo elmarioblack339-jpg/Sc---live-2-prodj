@@ -550,8 +550,15 @@ class MainActivity : ComponentActivity() {
             dialog.hide()
         }, Color.rgb(28, 125, 76))
         addBrowserButton(actions, "BIBLIOTECA", {
-            if (browserPinnedDeck != null) dialog.hide() else dialog.dismiss()
-            webView.evaluateJavascript("window.openLibrary && window.openLibrary(0);", null)
+            // Mantener vivo el navegador: solo ocultarlo para mostrar la biblioteca
+            // del WebView principal. dismiss() destruía el WebView de Google.
+            dialog.hide()
+            webView.post {
+                webView.evaluateJavascript(
+                    "if (window.openLibrary) { window.openLibrary(0); } else { console.error('openLibrary no está disponible'); }",
+                    null
+                )
+            }
         })
         addBrowserButton(actions, "CERRAR", {
             browserPinnedDeck = null
