@@ -256,7 +256,7 @@ class MainActivity : ComponentActivity() {
                 contentResolver.query(
                     MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                     projection,
-                    "${MediaStore.Audio.Media.IS_MUSIC} != 0",
+                    null,
                     null,
                     "${MediaStore.Audio.Media.TITLE} COLLATE NOCASE ASC"
                 )?.use { cursor ->
