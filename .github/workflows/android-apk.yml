@@ -1,7 +1,7 @@
 name: Build SC LIVE 2 APK
 on:
   push:
-    branches: [sc-live2-build]
+    branches: [sc-live2-build, feature/build241-stamp-intro]
   workflow_dispatch:
 permissions:
   contents: read
