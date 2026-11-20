@@ -48,41 +48,21 @@ body{margin:0;background:#f3f4f6;font-family:"Barlow Condensed","Arial Narrow",s
 .mt i{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(0deg,#22e57f 0 55%,#ffb02e 75%,#ff4655)}
 .zn{display:none;align-items:center;justify-content:center;border:3px dashed #2f7bff;background:rgba(47,123,255,.18);color:#fff;font-size:26px;font-weight:700;z-index:9;border-radius:8px}
 canvas{display:block;width:100%;height:100%;background:#000}
-#splash{position:fixed;inset:0;z-index:300;overflow:hidden;background:#02040b;color:#fff;font-family:Arial,sans-serif;isolation:isolate;animation:splashFade .6s ease 15s forwards}
-#splash .trailerScene{position:absolute;inset:0;width:100%;height:100%;transform-origin:54% 52%;animation:scenePush 15s cubic-bezier(.2,.65,.25,1) both}
-#splash .stormSky{position:absolute;inset:0;background:radial-gradient(ellipse at 65% 22%,rgba(112,40,180,.18),transparent 34%),linear-gradient(180deg,#080b1b 0%,#11172a 46%,#060910 100%)}
-#splash .neonClouds{position:absolute;left:-15%;top:-14%;width:130%;height:66%;opacity:.28;background:radial-gradient(ellipse at 25% 65%,#a42cff 0 4%,transparent 27%),radial-gradient(ellipse at 60% 55%,#147bff 0 6%,transparent 31%),radial-gradient(ellipse at 82% 72%,#fa278c 0 5%,transparent 28%);filter:blur(23px);animation:cloudPulse 1.1s ease-in-out 1.35s 3 alternate}
-#splash .cityGlow{position:absolute;inset:48% 0 0;background:linear-gradient(180deg,transparent,rgba(12,24,48,.78)),repeating-linear-gradient(90deg,transparent 0 8%,rgba(56,100,168,.18) 8.2% 8.35%,transparent 8.6% 15%)}
-#splash .rain{position:absolute;inset:-30% 0 0;background:repeating-linear-gradient(105deg,transparent 0 23px,rgba(180,215,255,.28) 24px,transparent 25px 43px);opacity:.45;animation:rainFall .24s linear infinite}
-#splash .walkScene{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 12px 18px #0009)}
-#splash .walkBody{transform-origin:410px 560px;animation:walkBob .42s ease-in-out infinite alternate}
-#splash .phoneGlow{animation:phonePulse .8s ease-in-out infinite alternate}
-#splash .lightningBolt{fill:none;stroke:#d9f6ff;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:700;stroke-dashoffset:700;filter:drop-shadow(0 0 9px #fff) drop-shadow(0 0 25px #5abaff);animation:boltHit .7s ease-out 8.05s forwards}
-#splash .boltCore{fill:none;stroke:#fff;stroke-width:2.5;stroke-dasharray:700;stroke-dashoffset:700;filter:drop-shadow(0 0 12px #fff);animation:boltHit .55s ease-out 2.55s forwards}
-#splash .impact{position:absolute;left:58%;top:59%;width:min(32vw,260px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff 0 3%,#9ceaff 8%,rgba(55,139,255,.45) 25%,transparent 68%);opacity:0;transform:translate(-50%,-50%) scale(.1);animation:impactBlast .9s ease-out 8.48s both}
-#splash .smoke{position:absolute;left:58%;top:54%;width:180px;height:170px;opacity:0;transform:translate(-50%,-50%);background:radial-gradient(ellipse at 50% 72%,rgba(205,220,238,.5),rgba(95,110,135,.24) 36%,transparent 72%);filter:blur(12px);animation:smokeRise 1.8s ease-out 8.58s both}
-#splash .sparkField{position:absolute;left:58%;top:59%;width:3px;height:3px;border-radius:50%;background:#fff;box-shadow:0 -55px 0 1px #8feaff,35px -28px 0 1px #fff,-42px -15px 0 1px #a98cff,54px 18px 0 1px #6bcaff,-30px 42px 0 1px #fff;opacity:0;animation:sparks .85s ease-out 8.48s both}
-#splash .brandReveal{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:radial-gradient(ellipse at center,rgba(13,27,55,.28),rgba(0,0,0,.88) 72%);opacity:0;transform:scale(1.22);animation:brandStamp 1.15s cubic-bezier(.15,.85,.25,1) 9.18s both}
-#splashLogo{position:relative;width:min(42vw,230px);height:auto;filter:drop-shadow(0 0 15px #327dff) drop-shadow(0 0 34px #8b4cff)}
-#splashTitle{margin-top:12px;font-size:clamp(19px,4.5vw,32px);font-weight:900;letter-spacing:.2em;text-shadow:0 0 14px #397dff,0 0 30px #754cff}
-#splashSub{margin-top:8px;font-size:clamp(9px,1.8vw,13px);letter-spacing:.32em;color:#c6dcff}
-#splash .stampRing{position:absolute;width:min(58vw,390px);aspect-ratio:1;border:2px solid rgba(117,190,255,.8);border-radius:50%;box-shadow:0 0 25px #397dff,inset 0 0 22px #397dff;opacity:0;animation:stampRing 1s ease-out 9.28s both}
-@keyframes scenePush{0%{transform:scale(1)}35%{transform:scale(1.035)}62%{transform:scale(1.09)}82%{transform:scale(1.16)}100%{transform:scale(1.24);opacity:.08}}
-@keyframes cloudPulse{to{opacity:.9;filter:blur(32px) brightness(1.7)}}
-@keyframes rainFall{to{transform:translateY(75px)}}
-@keyframes walkBob{to{transform:translateY(5px) rotate(.3deg)}}
-@keyframes phonePulse{to{filter:brightness(1.9) drop-shadow(0 0 13px #52baff)}}
-@keyframes boltHit{0%{stroke-dashoffset:700;opacity:0}12%{opacity:1}72%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:-30;opacity:0}}
-@keyframes impactBlast{0%{opacity:0;transform:translate(-50%,-50%) scale(.1)}25%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(3.4)}}
-@keyframes smokeRise{0%{opacity:0;transform:translate(-50%,-40%) scale(.35)}35%{opacity:.8}100%{opacity:.15;transform:translate(-50%,-95%) scale(1.8)}}
-@keyframes sparks{0%{opacity:0;transform:scale(.2)}20%{opacity:1}100%{opacity:0;transform:scale(2.4)}}
-@keyframes brandStamp{0%{opacity:0;transform:scale(1.22);filter:blur(12px)}55%{opacity:1;transform:scale(.94);filter:blur(0)}72%{transform:scale(1.035)}100%{opacity:1;transform:scale(1)}}
-@keyframes stampRing{0%{opacity:0;transform:scale(.25)}30%{opacity:.9}100%{opacity:0;transform:scale(1.65)}}
+#splash{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(ellipse at 50% 45%,#142448 0%,#080d1c 48%,#02040a 100%);color:#fff;font-family:Arial,sans-serif;isolation:isolate;animation:splashFade .38s ease 2.65s forwards}
+#splash .brandReveal{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+#splashLogo{position:relative;width:min(42vw,230px);height:auto;filter:drop-shadow(0 0 15px #327dff) drop-shadow(0 0 34px #8b4cff);transform-origin:50% 50%;animation:sealDrop .98s cubic-bezier(.16,.78,.22,1.25) .12s both}
+#splashTitle{margin-top:12px;font-size:clamp(19px,4.5vw,32px);font-weight:900;letter-spacing:.2em;text-shadow:0 0 14px #397dff,0 0 30px #754cff;opacity:0;animation:titleStamp .45s ease .68s forwards}
+#splashSub{margin-top:8px;font-size:clamp(9px,1.8vw,13px);letter-spacing:.32em;color:#c6dcff;opacity:0;animation:titleStamp .4s ease .82s forwards}
+#splash .stampRing{position:absolute;z-index:1;width:min(58vw,390px);aspect-ratio:1;border:2px solid rgba(117,190,255,.8);border-radius:50%;box-shadow:0 0 25px #397dff,inset 0 0 22px #397dff;opacity:0;animation:stampRing .9s ease-out .58s both}
+#splash .stampImpact{position:absolute;z-index:1;width:min(34vw,250px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff 0 2%,#9ceaff 8%,rgba(55,139,255,.42) 28%,transparent 70%);opacity:0;animation:stampFlash .55s ease-out .58s both}
+@keyframes sealDrop{0%{opacity:0;transform:translateY(-105vh) rotate(-15deg) scale(.72)}62%{opacity:1;transform:translateY(13px) rotate(3deg) scale(1.08)}78%{transform:translateY(-5px) rotate(-1deg) scale(.98)}100%{opacity:1;transform:translateY(0) rotate(0) scale(1)}}
+@keyframes titleStamp{to{opacity:1;transform:translateY(0)}}
+@keyframes stampRing{0%{opacity:0;transform:scale(.2)}28%{opacity:.95}100%{opacity:0;transform:scale(1.55)}}
+@keyframes stampFlash{0%{opacity:0;transform:scale(.15)}25%{opacity:.9}100%{opacity:0;transform:scale(2.6)}}
 @keyframes splashFade{to{opacity:0;visibility:hidden;pointer-events:none}}
-#skipSplash{position:absolute;z-index:5;top:calc(env(safe-area-inset-top,0px) + 14px);right:18px;padding:10px 17px;border:1px solid rgba(165,210,255,.9);border-radius:9px;background:rgba(7,15,32,.82);color:#fff;font:800 12px Arial,sans-serif;letter-spacing:.14em;box-shadow:0 0 15px rgba(55,139,255,.55);opacity:0;pointer-events:none;cursor:pointer;animation:skipReveal .3s ease 4s forwards}
+#skipSplash{position:absolute;z-index:5;top:calc(env(safe-area-inset-top,0px) + 14px);right:18px;padding:10px 17px;border:1px solid rgba(165,210,255,.9);border-radius:9px;background:rgba(7,15,32,.82);color:#fff;font:800 12px Arial,sans-serif;letter-spacing:.14em;box-shadow:0 0 15px rgba(55,139,255,.55);cursor:pointer}
 #skipSplash:active{transform:scale(.96);background:#174d91}
-@keyframes skipReveal{to{opacity:1;pointer-events:auto}}
-@media(prefers-reduced-motion:reduce){#splash .rain,#splash .walkBody,#splash .phoneGlow{animation:none!important}#splash .brandReveal{opacity:1;transform:none;animation:none}}
+@media(prefers-reduced-motion:reduce){#splashLogo,#splashTitle,#splashSub,#splash .stampRing,#splash .stampImpact{animation:none!important;opacity:1;transform:none!important}}
 #appTools{position:fixed;right:8px;top:4px;z-index:120;display:flex;gap:6px;align-items:center;font:12px Arial,sans-serif;color:#fff}#recToggle{background:#401b22;color:#fff;border:1px solid #ff5968;border-radius:7px;padding:6px 9px;font-weight:900}#recToggle.recording{background:#d51f35;box-shadow:0 0 12px #f33}#proMenu .eqPresetCard{display:flex;flex-direction:column;gap:7px;padding:10px;border:1px solid #3d5271;border-radius:9px;background:#101827}#proMenu .eqPresetCard strong{color:#d5e7ff;letter-spacing:.08em}#proMenu .eqPresetCard small{color:#9fb2cf;min-height:18px}#eqPresetStatus{color:#a9caff;font-weight:700}#proMenu .settingPanel{margin:12px 0;padding:12px;border:1px solid #34455f;border-radius:10px;background:#111a29}#proMenu .settingPanel h3{margin:0 0 9px;color:#bcd8ff}#proMenu .settingPanel button{margin:3px}#deviceStats{font-weight:700;line-height:1.8;color:#b8cbe4}body[data-theme=gold]{--bl:#e4b341;--gn:#f4d36a}body[data-theme=red]{--bl:#ff465b;--gn:#ff8b70}body[data-theme=purple]{--bl:#b56cff;--gn:#d5a5ff}
 #localClock,#lockUi{background:#17243b;color:#fff;border:1px solid #397cff;border-radius:7px;padding:6px 9px;font-weight:700}
 #displaySize{background:#17243b;color:#fff;border:1px solid #a16cff;border-radius:7px;padding:6px 9px;font-weight:700;cursor:pointer}#coverSize,#coverBg{background:#17243b;color:#fff;border:1px solid #397cff;border-radius:7px;padding:5px 7px;font:700 11px Arial,sans-serif;max-width:104px}body.ultra-mode .zoomctl{display:none!important}body.ultra-mode #appTools{gap:3px;font-size:10px;right:4px;top:3px}body.ultra-mode #appTools button,body.ultra-mode #localClock{padding:3px 5px;font-size:10px;min-width:0}body.ultra-mode #coverSize,body.ultra-mode #coverBg{padding:3px 4px;font-size:9px;max-width:82px}body.ultra-mode .bt,body.ultra-mode .kn{transform:scale(1.05)}body.ultra-mode .bt.dn{transform:translateY(1px) scale(1.05)}body.ultra-mode .bt.cue,body.ultra-mode .bt.pl{transform:scale(.90)}body.ultra-mode .lb{font-size:7px}body.ultra-mode .screenFrame{border-width:1px}
@@ -195,64 +175,7 @@ canvas{display:block;width:100%;height:100%;background:#000}
 #drFoot b{color:#83caff}
 @media(max-width:520px){#driverRack{padding:7px 5px}#drBrand{grid-template-columns:55px minmax(80px,1fr) 48px 68px;gap:4px;font-size:8px}#drModel{display:none}#drFace{grid-template-columns:52px minmax(105px,1fr) 48px 105px minmax(150px,1.4fr);gap:4px;padding:5px 3px}#drLogoBlock strong{font-size:18px}#drScreen{min-height:82px;padding:5px}#drScreenName{font-size:9px}#drScreenInfo{font-size:7px}#drEncoder{width:42px;height:42px}#drEncoder:before{height:11px;transform-origin:50% 18px}#drButtons{gap:3px;padding:1px}.drBtn{font-size:6px;min-height:19px}#drLeds{height:50px}.drLeds{height:50px;width:9px}.drChannel label{font-size:5px}#drFoot{font-size:6px}}
 </style></head><body>
-<div id="splash" aria-label="SC LIVE 2 · presentación cinematográfica">
-<div class="trailerScene" aria-hidden="true">
-<div class="stormSky"></div><div class="neonClouds"></div><div class="cityGlow"></div><div class="rain"></div>
-<svg class="walkScene" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice">
-<defs>
-<linearGradient id="nightRoad" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#17233b"/><stop offset="1" stop-color="#03050b"/></linearGradient>
-<linearGradient id="phoneScreen" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b8f4ff"/><stop offset=".5" stop-color="#287dff"/><stop offset="1" stop-color="#9c43ff"/></linearGradient>
-<linearGradient id="skinTone" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f2c6a5"/><stop offset=".48" stop-color="#bd866d"/><stop offset="1" stop-color="#704b48"/></linearGradient>
-<linearGradient id="hoodieTone" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#34435c"/><stop offset=".42" stop-color="#111a2b"/><stop offset="1" stop-color="#050912"/></linearGradient>
-<linearGradient id="headphoneMetal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d7e7ff"/><stop offset=".45" stop-color="#5f789d"/><stop offset="1" stop-color="#18263d"/></linearGradient>
-<filter id="softFaceLight"><feGaussianBlur stdDeviation="5"/></filter>
-<filter id="phoneGlowFx"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-</defs>
-<rect x="0" y="485" width="1000" height="215" fill="url(#nightRoad)"/>
-<path d="M0 550 Q250 500 500 555 T1000 540" fill="none" stroke="#315b91" stroke-width="3" opacity=".35"/>
-<g opacity=".55" fill="#080d19"><path d="M0 340h95v190H0zM105 290h75v240h-75zM195 370h120v160H195zM710 320h90v210h-90zM820 265h80v265h-80zM910 350h90v180h-90z"/></g>
-<g opacity=".5" fill="#7a45c9"><path d="M126 325h8v18h-8zM145 325h8v18h-8zM844 300h8v18h-8zM865 300h8v18h-8z"/></g>
-<g class="walkBody">
-<ellipse cx="412" cy="650" rx="118" ry="18" fill="#000" opacity=".6"/>
-<path d="M365 420 Q330 445 325 535 L310 633 Q355 656 398 635 L421 525 L455 635 Q493 649 527 628 L500 505 Q495 440 458 415Z" fill="url(#hoodieTone)" stroke="#26344d" stroke-width="5"/>
-<path d="M375 440 Q390 470 405 520 M458 438 Q445 474 430 520 M345 510 Q365 526 382 531 M488 510 Q470 528 454 535" fill="none" stroke="#71829d" stroke-width="3" opacity=".3"/>
-<path d="M402 428 L417 478 L433 428" fill="none" stroke="#8294ad" stroke-width="2" opacity=".42"/>
-<path d="M365 430 Q400 462 458 420 L475 520 Q425 550 338 520Z" fill="#111a2b"/>
-<path d="M360 446 L310 515 L286 580 Q298 598 316 583 L365 520" fill="#0a101d" stroke="#26334a" stroke-width="8"/>
-<path d="M468 438 L520 480 L558 420 Q570 403 584 415 L574 455 L535 535 L485 510" fill="#0a101d" stroke="#26334a" stroke-width="8"/>
-<path d="M355 630 L345 685 L405 685 L418 638 M455 634 L472 685 L535 685 L515 632" fill="#070a12"/>
-<path d="M342 682h70l-4 14h-83zM470 682h69l14 14h-85z" fill="#05070c" stroke="#46536a" stroke-width="3"/>
-<path d="M359 280 Q360 220 420 215 Q482 220 480 292 L467 362 Q450 400 416 401 Q374 393 360 350Z" fill="#101725" stroke="#34425b" stroke-width="4"/>
-<path d="M355 288 Q350 208 420 202 Q492 210 488 294 L475 280 Q470 230 420 229 Q375 232 371 290Z" fill="#05080f"/>
-<path d="M382 276 Q391 246 422 245 Q457 247 465 280 L460 331 Q450 363 424 371 Q397 365 386 338Z" fill="url(#skinTone)" stroke="#5e4650" stroke-width="2"/>
-<path d="M382 279 Q390 239 425 239 Q458 242 468 273 Q446 260 427 263 Q404 264 389 290Z" fill="#080d18"/>
-<path d="M398 300 Q407 294 416 300 M435 299 Q444 293 452 299" fill="none" stroke="#342b30" stroke-width="3" stroke-linecap="round"/>
-<ellipse cx="408" cy="304" rx="3.4" ry="2.2" fill="#111827"/><ellipse cx="444" cy="303" rx="3.4" ry="2.2" fill="#111827"/>
-<path d="M428 306 L422 327 L432 330" fill="none" stroke="#805b52" stroke-width="2.5" stroke-linecap="round"/>
-<path d="M411 345 Q425 351 440 342" fill="none" stroke="#633f43" stroke-width="2.6" stroke-linecap="round"/>
-<path d="M393 318 Q398 335 411 344" fill="none" stroke="#f4d2b6" stroke-width="3" opacity=".25"/>
-<path d="M352 272 Q342 300 354 328 M482 270 Q495 300 479 329" fill="none" stroke="url(#headphoneMetal)" stroke-width="14" stroke-linecap="round"/>
-<path d="M352 272 Q342 300 354 328 M482 270 Q495 300 479 329" fill="none" stroke="#101a2a" stroke-width="8" stroke-linecap="round"/>
-<rect x="344" y="290" width="17" height="33" rx="7" fill="#263d5b" stroke="#a9c4e8" stroke-width="2"/><rect x="476" y="290" width="17" height="33" rx="7" fill="#263d5b" stroke="#a9c4e8" stroke-width="2"/>
-
-<path d="M389 347 Q420 365 451 345" fill="none" stroke="#070b13" stroke-width="8"/>
-<path d="M390 371 Q418 388 448 370 L455 421 Q420 446 379 421Z" fill="#0d1422"/>
-<path d="M570 412 L591 398 L609 420 L590 438Z" fill="#b88d77"/>
-<g class="phoneGlow" filter="url(#phoneGlowFx)" transform="rotate(-12 615 395)">
-<rect x="604" y="350" width="39" height="75" rx="7" fill="#05080e" stroke="#b7d9ff" stroke-width="3"/>
-<rect x="609" y="358" width="29" height="57" rx="3" fill="url(#phoneScreen)"/>
-<path d="M615 386h17M623 378v17" stroke="#fff" stroke-width="2" opacity=".9"/>
-</g>
-</g>
-<path class="lightningBolt" d="M690 -20 L625 120 L674 150 L570 300 L620 324 L565 410 L610 424"/>
-<path class="boltCore" d="M690 -20 L625 120 L674 150 L570 300 L620 324 L565 410 L610 424"/>
-</svg>
-<div class="impact"></div><div class="smoke"></div><div class="sparkField"></div>
-</div>
-<div class="brandReveal"><div class="stampRing"></div>
-<svg id="splashLogo" viewBox="0 0 260 220" role="img" aria-label="SC LIVE 2 logo"><defs><linearGradient id="scg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset=".48" stop-color="#8dc5ff"/><stop offset="1" stop-color="#7957ff"/></linearGradient></defs><circle cx="130" cy="104" r="91" fill="none" stroke="#286dff" stroke-width="2" opacity=".8"/><circle cx="130" cy="104" r="82" fill="#090d18" stroke="#8c63ff" stroke-width="1.5"/><text x="130" y="143" text-anchor="middle" font-family="Arial,sans-serif" font-size="104" font-weight="900" letter-spacing="-10" fill="url(#scg)">SC</text></svg>
-<div id="splashTitle">SC LIVE 2</div><div id="splashSub">PRO DJ SYSTEM</div>
-</div><button id="skipSplash" type="button" aria-label="Omitir presentación">OMITIR</button></div><div class="top" id="msg"></div><div id="appTools"><button id="recToggle" type="button">● REC</button><span id="localClock" title="Toca para cambiar formato">--:--</span><button id="lockUi" type="button">🔓 Bloquear</button><button id="displaySize" type="button">⛶ Tamaño</button><select id="coverSize" aria-label="Tamaño de carátula"><option value="small">PEQUEÑO</option><option value="medium">MEDIO</option><option value="ultra">ULTRA</option></select><button id="coverBg" type="button">FONDO: NEGRO</button></div>
+<div id="splash" aria-label="SC LIVE 2 · sello animado"><div class="stampRing" aria-hidden="true"></div><div class="stampImpact" aria-hidden="true"></div><div class="brandReveal"><svg id="splashLogo" viewBox="0 0 260 220" role="img" aria-label="SC LIVE 2 logo"><defs><linearGradient id="scg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset=".48" stop-color="#8dc5ff"/><stop offset="1" stop-color="#7957ff"/></linearGradient></defs><circle cx="130" cy="104" r="91" fill="none" stroke="#286dff" stroke-width="2" opacity=".8"/><circle cx="130" cy="104" r="82" fill="#090d18" stroke="#8c63ff" stroke-width="1.5"/><text x="130" y="143" text-anchor="middle" font-family="Arial,sans-serif" font-size="104" font-weight="900" letter-spacing="-10" fill="url(#scg)">SC</text></svg><div id="splashTitle">SC LIVE 2</div><div id="splashSub">PRO DJ SYSTEM</div></div><button id="skipSplash" type="button" aria-label="Omitir presentación">OMITIR</button></div><div class="top" id="msg"></div><div id="appTools"><button id="recToggle" type="button">● REC</button><span id="localClock" title="Toca para cambiar formato">--:--</span><button id="lockUi" type="button">🔓 Bloquear</button><button id="displaySize" type="button">⛶ Tamaño</button><select id="coverSize" aria-label="Tamaño de carátula"><option value="small">PEQUEÑO</option><option value="medium">MEDIO</option><option value="ultra">ULTRA</option></select><button id="coverBg" type="button">FONDO: NEGRO</button></div>
 <div id="wrap"><div id="st"></div></div>
 <input type="file" id="file" accept="audio/*" multiple hidden><input type="file" id="rankAuxFile" accept="audio/*" hidden><input type="file" id="folderfile" accept="audio/*" multiple webkitdirectory hidden><div id="proMenu"><button id="menuBack" class="menuBack" type="button">← VOLVER A LA CONSOLA</button><h2>SC LIVE 2 · AUDIO PRO</h2><div class="settingPanel" id="nativeDspPanel"><h3>REPRODUCTOR INDEPENDIENTE · DSP</h3><p>Reproduce archivos de audio autorizados por la ruta nativa SC LIVE 2. No ocupa Deck 1 ni Deck 2. El audio del navegador YouTube no se transfiere a este reproductor.</p><div class="progrid"><button type="button" id="nativeDspChoose">SELECCIONAR AUDIO</button><button type="button" id="nativeDspPause">PAUSAR</button><button type="button" id="nativeDspResume">CONTINUAR</button><button type="button" id="nativeDspStop">DETENER</button></div><p id="nativeDspStatus" aria-live="polite">REPRODUCTOR DSP · LISTO</p></div><p>Procesamiento avanzado. Los cambios se aplican al ecualizador y al limitador actuales.</p><div class="settingPanel"><h3>INTERFAZ · TEMA</h3><button type="button" data-theme-choice="normal">NORMAL</button><button type="button" data-theme-choice="gold">DORADO</button><button type="button" data-theme-choice="red">ROJO</button><button type="button" data-theme-choice="purple">MORADO</button></div><div class="settingPanel"><h3>PRESETS DE ECUALIZACIÓN · 3 MEMORIAS</h3><p>Guarda aquí tu ecualización personal. Al volver a abrir la aplicación, los controles arrancan limpios; tus tres memorias siguen guardadas.</p><div id="eqPresetSlots" class="progrid"><div class="eqPresetCard"><strong>PRESET 1</strong><button type="button" data-eq-save="0">GUARDAR ACTUAL</button><button type="button" data-eq-load="0">CARGAR</button><small id="eqPresetInfo0">Vacío</small></div><div class="eqPresetCard"><strong>PRESET 2</strong><button type="button" data-eq-save="1">GUARDAR ACTUAL</button><button type="button" data-eq-load="1">CARGAR</button><small id="eqPresetInfo1">Vacío</small></div><div class="eqPresetCard"><strong>PRESET 3</strong><button type="button" data-eq-save="2">GUARDAR ACTUAL</button><button type="button" data-eq-load="2">CARGAR</button><small id="eqPresetInfo2">Vacío</small></div></div><p id="eqPresetStatus" aria-live="polite">Máximo tres presets. Guardar en un espacio ocupado lo reemplaza.</p></div><div class="settingPanel"><h3>SALIDA DE AUDIO</h3><button type="button" id="outputCell">🎧 CELULAR · NORMAL</button><button type="button" id="outputPc">🖥 PC · + NIVEL</button><p id="outputModeLabel">Perfil celular activo. Nivel estándar.</p></div><div class="settingPanel"><h3>ESTADO DEL DISPOSITIVO</h3><div id="deviceStats">CPU: consultando…<br>Temperatura: consultando…</div><p>Si Android detecta calor elevado, reduce automáticamente procesos visuales para proteger la reproducción.</p></div><div class="settingPanel" id="advancedSafetyPanel"><h3>PROTECCIÓN DE AJUSTES INTERNOS</h3><button type="button" id="advancedSettingsLock" aria-pressed="true">🔒 AJUSTES BLOQUEADOS</button><p>Desbloquea solo cuando necesites cambiar ganancias, limitador, ratio o saturación. Los controles desactivados quedan inmóviles.</p></div><div class="progrid"><label class="proControl">Ganancia graves<button type="button" class="advancedToggle on" id="advLowToggle" aria-pressed="true">ACTIVO</button><input id="advLow" type="range" min="-12" max="12" value="0"></label><label class="proControl">Ganancia medios<button type="button" class="advancedToggle on" id="advMidToggle" aria-pressed="true">ACTIVO</button><input id="advMid" type="range" min="-12" max="4" value="0"></label><label class="proControl">Ganancia agudos<button type="button" class="advancedToggle on" id="advHighToggle" aria-pressed="true">ACTIVO</button><input id="advHigh" type="range" min="-12" max="4" value="0"></label><label class="proControl">Umbral limitador<button type="button" class="advancedToggle on" id="advLimitToggle" aria-pressed="true">ACTIVO</button><input id="advLimit" type="range" min="-18" max="0" value="-4"></label><label class="proControl">Ratio compresión<button type="button" class="advancedToggle on" id="advRatioToggle" aria-pressed="true">ACTIVO</button><input id="advRatio" type="range" min="1" max="20" value="4"></label><label class="proControl">Saturación suave<button type="button" class="advancedToggle on" id="advSatToggle" aria-pressed="true">ACTIVO</button><input id="advSat" type="range" min="0" max="30" value="0"></label></div><p>La saturación es experimental y debe usarse con moderación para evitar distorsión.</p><div id="ampSection"><h3>SC AMPLIFICATION · DIGITAL POWER RACK</h3><div id="ampModules">
 <section class="ampModule ampLow"><h4>SC AMPLIFICATION · LOW OUTPUT</h4><div class="ampFaceplate" role="group" aria-label="Amplificador de salidas LOW 1 y LOW 2"><div class="ampFaceBrand">SC AMPLIFICATION</div><div class="ampFaceControls ampSingleControl"><div class="ampFaceControl"><div class="ampDial" id="ampLowVolumeDial" role="slider" aria-label="Volumen de salida de bajos"></div><strong>VOLUMEN DE SALIDA</strong><div class="ampMeter" id="ampLowMeter"><i class="ampMeterFill"></i></div><span class="ampMeterLabel">SEÑAL DE SALIDA LOW</span><span class="ampValue" id="ampLowVolumeValue">75%</span></div></div><div class="ampFacePower"><div class="ampLedStack"><i></i><i></i><i></i></div><button type="button" class="ampPower on" id="ampLowPower" aria-label="Encender amplificador de bajos">POWER</button><small>LOW 1 / LOW 2</small></div></div></section><section class="ampModule ampHigh"><h4>SC AMPLIFICATION · MID / HIGH OUTPUT</h4><div class="ampFaceplate" role="group" aria-label="Amplificador de salidas MID y HIGH"><div class="ampFaceBrand">SC AMPLIFICATION</div><div class="ampFaceControls ampSingleControl"><div class="ampFaceControl"><div class="ampDial" id="ampHighVolumeDial" role="slider" aria-label="Volumen de salida de medios y agudos"></div><strong>VOLUMEN DE SALIDA</strong><div class="ampMeter" id="ampHighMeter"><i class="ampMeterFill"></i></div><span class="ampMeterLabel">SEÑAL DE SALIDA MID / HIGH</span><span class="ampValue" id="ampHighVolumeValue">75%</span></div></div><div class="ampFacePower"><div class="ampLedStack"><i></i><i></i><i></i></div><button type="button" class="ampPower on" id="ampHighPower" aria-label="Encender amplificador de medios y agudos">POWER</button><small>MID 1 / MID 2 / HIGH 1 / HIGH 2</small></div></div></section></div><div class="ampHint">El DriveRack realiza la división y el procesamiento de frecuencias. Los amplificadores solo controlan encendido y volumen de sus salidas.</div><section id="driverRack" aria-label="SC RACK · procesador digital basado en DriveRack 260">
@@ -542,101 +465,8 @@ let panX=0,panY=0,panPointer=null,panStart=null;function fit(){const topEl=$('.t
 S.addEventListener('pointerdown',e=>{if(uiLocked||e.target.closest('.bt,.kn,.tr,.jg,canvas,button,input'))return;panPointer=e.pointerId;panStart={x:e.clientX-panX,y:e.clientY-panY};S.setPointerCapture(e.pointerId)});S.addEventListener('pointermove',e=>{if(panPointer!==e.pointerId||!panStart||uiLocked)return;panX=e.clientX-panStart.x;panY=e.clientY-panStart.y;const limX=Math.max(0,(innerWidth-960*SC)/2),limY=Math.max(0,(innerHeight-580*SC)/2);panX=Math.max(-limX,Math.min(limX,panX));panY=Math.max(-limY,Math.min(limY,panY));fit()});const endPan=e=>{if(panPointer===e.pointerId){panPointer=null;panStart=null}};S.addEventListener('pointerup',endPan);S.addEventListener('pointercancel',endPan);
 const COVER_SIZE_KEY='SC2_COVER_SIZE',COVER_BG_KEY='SC2_COVER_BG';let coverSize='medium',coverBg='black';function applyCoverMode(){document.body.classList.toggle('ultra-mode',coverSize==='ultra');const scale=coverSize==='small'?.88:coverSize==='ultra'?1.07:1;D.forEach(d=>{if(d.jg){d.jg.style.transform='scale('+scale+')';d.jg.style.transformOrigin='center center';d.jg.style.background=coverBg==='white'?'#f4f4f4':'#050506'}});$('#coverSize').value=coverSize;$('#coverBg').textContent='FONDO: '+(coverBg==='white'?'BLANCO':'NEGRO');updateClock();}try{coverSize=localStorage.getItem(COVER_SIZE_KEY)||'medium';if(!['small','medium','ultra'].includes(coverSize))coverSize='medium';coverBg=localStorage.getItem(COVER_BG_KEY)||'black';if(!['black','white'].includes(coverBg))coverBg='black'}catch(e){}$('#coverSize').onchange=e=>{if(uiLocked){e.target.value=coverSize;msg('Desbloquea la pantalla para cambiar la carátula');return}coverSize=e.target.value;try{localStorage.setItem(COVER_SIZE_KEY,coverSize)}catch(err){}applyCoverMode();msg('Tamaño de carátula: '+coverSize.toUpperCase())};$('#coverBg').onclick=()=>{if(uiLocked){msg('Desbloquea la pantalla para cambiar el fondo');return}coverBg=coverBg==='black'?'white':'black';try{localStorage.setItem(COVER_BG_KEY,coverBg)}catch(e){}applyCoverMode()};$('#zoomIn').onclick=()=>{if(uiLocked){msg('Desbloquea la pantalla para cambiar el zoom');return}zoom=Math.min(1.35,zoom+.05);fit()};$('#zoomOut').onclick=()=>{if(uiLocked){msg('Desbloquea la pantalla para cambiar el zoom');return}zoom=Math.max(.7,zoom-.05);fit()};$('#zoomReset').onclick=()=>{if(uiLocked){msg('Desbloquea la pantalla para cambiar el zoom');return}zoom=1;panX=0;panY=0;fit()};
 
-/* SC LIVE 2 original 15-second dembow intro score: syncopated kick, clap, bass and bright synth accents. */
-(function(){
- let ctx=null,master=null,started=false;
- function makeNoise(duration){
-  const b=ctx.createBuffer(1,Math.max(1,Math.ceil(ctx.sampleRate*duration)),ctx.sampleRate);
-  const d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b;
- }
- function envelope(g,t,a,d,peak){
-  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(peak,t+a);
-  g.gain.exponentialRampToValueAtTime(.0001,t+a+d);
- }
- function kick(t,amp){
-  const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';
-  o.frequency.setValueAtTime(145,t);o.frequency.exponentialRampToValueAtTime(42,t+.17);
-  o.connect(g);g.connect(master);envelope(g,t,.002,.28,amp);o.start(t);o.stop(t+.31);
- }
- function clap(t,amp){
-  const s=ctx.createBufferSource();s.buffer=makeNoise(.19);
-  const hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=900;
-  const g=ctx.createGain();s.connect(hp);hp.connect(g);g.connect(master);
-  envelope(g,t,.002,.19,amp);s.start(t);s.stop(t+.2);
-  [0,.022,.044].forEach((d)=>{const n=ctx.createBufferSource();n.buffer=makeNoise(.035);
-   const f=ctx.createBiquadFilter();f.type='highpass';f.frequency.value=1500;
-   const ng=ctx.createGain();n.connect(f);f.connect(ng);ng.connect(master);
-   envelope(ng,t+d,.001,.045,amp*.24);n.start(t+d);n.stop(t+d+.05);});
- }
- function hat(t,duration,amp,pan){
-  const s=ctx.createBufferSource();s.buffer=makeNoise(duration);
-  const f=ctx.createBiquadFilter();f.type='highpass';f.frequency.value=6500;
-  const p=ctx.createStereoPanner();p.pan.value=pan;const g=ctx.createGain();
-  s.connect(f);f.connect(g);g.connect(p);p.connect(master);
-  envelope(g,t,.001,duration,amp);s.start(t);s.stop(t+duration);
- }
- function bass(freq,t,amp){
-  const o=ctx.createOscillator(),g=ctx.createGain(),f=ctx.createBiquadFilter();
-  o.type='sine';o.frequency.setValueAtTime(freq*1.7,t);o.frequency.exponentialRampToValueAtTime(freq,t+.065);
-  f.type='lowpass';f.frequency.value=145;o.connect(f);f.connect(g);g.connect(master);
-  envelope(g,t,.004,.29,amp);o.start(t);o.stop(t+.32);
- }
- function stab(freq,t,amp,pan){
-  const o=ctx.createOscillator(),g=ctx.createGain(),p=ctx.createStereoPanner(),f=ctx.createBiquadFilter();
-  o.type='triangle';o.frequency.setValueAtTime(freq,t);o.frequency.exponentialRampToValueAtTime(freq*.995,t+.16);
-  f.type='lowpass';f.frequency.setValueAtTime(2600,t);f.frequency.exponentialRampToValueAtTime(700,t+.22);
-  p.pan.value=pan;o.connect(f);f.connect(g);g.connect(p);p.connect(master);
-  envelope(g,t,.004,.22,amp);o.start(t);o.stop(t+.25);
- }
- function boom(t){
-  const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';
-  o.frequency.setValueAtTime(62,t);o.frequency.exponentialRampToValueAtTime(25,t+.82);
-  o.connect(g);g.connect(master);envelope(g,t,.004,1.08,.78);o.start(t);o.stop(t+1.12);
-  const s=ctx.createBufferSource();s.buffer=makeNoise(.72);const f=ctx.createBiquadFilter();
-  f.type='lowpass';f.frequency.setValueAtTime(850,t);f.frequency.exponentialRampToValueAtTime(90,t+.7);
-  const ng=ctx.createGain();s.connect(f);f.connect(ng);ng.connect(master);
-  envelope(ng,t,.002,.75,.38);s.start(t);s.stop(t+.76);
- }
- window.SCIntroAudio={
-  start:function(){
-   if(started)return;started=true;
-   try{
-    const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
-    ctx=new AC();master=ctx.createGain();master.gain.value=.72;master.connect(ctx.destination);
-    const resume=ctx.resume();if(resume&&resume.catch)resume.catch(()=>{});
-    const now=ctx.currentTime+.12,bpm=104,beat=60/bpm,bar=beat*4;
-    const roots=[55,49,46.25,41.2,55,49,46.25];
-    /* First two seconds: anticipation, then the full syncopated dembow groove enters. */
-    for(let b=0;b<7;b++){
-     const base=now+b*bar,root=roots[b];
-     const level=b<1?.55:(b<2?.78:1);
-     [0,1.5,2.5].forEach((q)=>kick(base+q*beat,.62*level));
-     [1,3].forEach((q)=>clap(base+q*beat,.25*level));
-     [0,1.5,2.5,3.5].forEach((q)=>bass(root,base+q*beat,.27*level));
-     for(let eighth=0;eighth<8;eighth++){
-      const t=base+eighth*beat/2;
-      hat(t,.035,(eighth%2===0?.035:.021)*level,eighth%2?-.22:.2);
-     }
-     [0.75,2.75].forEach((q)=>hat(base+q*beat,.055,.055*level,q<1?-.35:.35));
-     [0,1.5,2.5].forEach((q,i)=>stab([root*4,root*5,root*6][i],base+q*beat+.025,.075*level,[-.18,.18,0][i]));
-    }
-    /* Rising percussion and lightning accent at the visual strike. */
-    for(let i=0;i<16;i++){const t=now+7.45+i*.075;hat(t,.09,.035+i*.003,(i%2?-.3:.3));}
-    boom(now+8.45);
-    stab(440,now+9.25,.17,-.12);stab(554.37,now+9.42,.12,.12);
-    /* Final bars continue under the logo and resolve into the console transition. */
-    const end=now+15.05;
-    master.gain.setValueAtTime(.72,now);
-    master.gain.setValueAtTime(.72,end-.75);
-    master.gain.setTargetAtTime(.0001,end-.72,.2);
-    setTimeout(()=>{if(ctx){try{ctx.close()}catch(e){}}},16200);
-   }catch(e){started=false;}
-  },
-  stop:function(){try{if(master&&ctx){master.gain.cancelScheduledValues(ctx.currentTime);master.gain.setTargetAtTime(.0001,ctx.currentTime,.035);setTimeout(()=>{try{ctx.close()}catch(e){}},220);}}catch(e){}}
- };
-})();
+function finishSplash(){const splash=$('#splash');if(!splash)return;splash.remove();if(window.NativeAudio)NativeAudio.requestAudioPermission()}
 
-function finishSplash(){const splash=$('#splash');if(!splash)return;if(window.SCIntroAudio)SCIntroAudio.stop();splash.remove();if(window.NativeAudio)NativeAudio.requestAudioPermission()}
 $('#skipSplash').addEventListener('click',finishSplash);
-addEventListener('resize',fit);fit();applyCoverMode();msg();tick();if(window.SCIntroAudio)SCIntroAudio.start();setTimeout(finishSplash,15600);
+addEventListener('resize',fit);fit();applyCoverMode();msg();tick();setTimeout(finishSplash,2900);
 </script></body></html>
