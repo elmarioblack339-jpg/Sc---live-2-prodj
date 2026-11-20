@@ -42,7 +42,7 @@ assert "browser.destroy()" in dismiss_block
 assert "browserWebView = null" in dismiss_block
 
 print("Browser session regression checks passed: D1/D2 hide, reopen reuses same WebView, CERRAR destroys it.")
-print("Not covered: YouTube audio DSP, Android process death, or device-specific background playback.")\n
+print("Not covered: YouTube audio DSP, Android process death, or device-specific background playback.")
 # The native DSP stage must be an app-owned PCM processor, never a global mix effect.
 dsp = Path("app/src/main/java/com/sclive2/dj/ScLiveDspAudioProcessor.kt").read_text(encoding="utf-8")
 assert "BaseAudioProcessor" in dsp
