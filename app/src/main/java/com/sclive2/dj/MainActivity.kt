@@ -79,7 +79,7 @@ class MainActivity : ComponentActivity() {
                 if (cursor.moveToFirst()) cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME)) else null
             } ?: "Audio seleccionado"
         } catch (_: Exception) { "Audio seleccionado" }
-        browserDialog?.dismiss()
+        browserDialog?.hide()
         val js = "window.loadNativeTrack && window.loadNativeTrack({uri:${JSONObject.quote(uri.toString())},title:${JSONObject.quote(title)}},$browserTargetDeck);"
         webView.post { webView.evaluateJavascript(js, null) }
     }
@@ -262,7 +262,12 @@ class MainActivity : ComponentActivity() {
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     private fun showOnlineBrowser() {
-        if (browserDialog?.isShowing == true) return
+        if (browserDialog != null && browserWebView != null) {
+            browserDialog?.show()
+            uiHandler.removeCallbacks(networkUpdater)
+            uiHandler.post(networkUpdater)
+            return
+        }
         val dialog = Dialog(this)
         browserDialog = dialog
         val root = LinearLayout(this).apply {
@@ -311,15 +316,15 @@ class MainActivity : ComponentActivity() {
         val actions = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         addBrowserButton(actions, "← ATRÁS", {
             val current = browserWebView
-            if (current?.canGoBack() == true) current.goBack() else dialog.dismiss()
+            if (current?.canGoBack() == true) current.goBack() else dialog.hide()
         })
         addBrowserButton(actions, "D1 · CARGAR", { openBrowserAudioPicker(0) }, Color.rgb(28, 83, 62))
         addBrowserButton(actions, "D2 · CARGAR", { openBrowserAudioPicker(1) }, Color.rgb(28, 83, 62))
         addBrowserButton(actions, "BIBLIOTECA", {
-            dialog.dismiss()
+            dialog.hide()
             webView.evaluateJavascript("window.openLibrary && window.openLibrary(0);", null)
         })
-        addBrowserButton(actions, "CERRAR", { dialog.dismiss() }, Color.rgb(105, 39, 43))
+        addBrowserButton(actions, "CERRAR", { dialog.hide() }, Color.rgb(105, 39, 43))
         root.addView(actions)
         val browser = WebView(this).apply {
             setBackgroundColor(Color.rgb(17, 18, 22))
