@@ -550,14 +550,15 @@ class MainActivity : ComponentActivity() {
             dialog.hide()
         }, Color.rgb(28, 125, 76))
         addBrowserButton(actions, "BIBLIOTECA", {
-            // Mantener vivo el navegador: solo ocultarlo para mostrar la biblioteca
-            // del WebView principal. dismiss() destruía el WebView de Google.
-            dialog.hide()
-            webView.post {
-                webView.evaluateJavascript(
-                    "if (window.openLibrary) { window.openLibrary(0); } else { console.error('openLibrary no está disponible'); }",
-                    null
-                )
+            // Primero abrir la biblioteca en el WebView principal y ocultar Google
+            // solo cuando JavaScript confirme que ejecutó openLibrary.
+            webView.evaluateJavascript(
+                "if (typeof window.openLibrary === 'function') { window.openLibrary(0); 'library-opened'; } else { 'library-missing'; }"
+            ) { result ->
+                dialog.hide()
+                if (result != "\"library-opened\"") {
+                    webView.evaluateJavascript("console.error('No se pudo abrir la biblioteca local');", null)
+                }
             }
         })
         addBrowserButton(actions, "CERRAR", {
