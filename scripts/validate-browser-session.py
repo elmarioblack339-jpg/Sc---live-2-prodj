@@ -30,6 +30,13 @@ for deck in ('"DECK 1"', '"DECK 2"'):
     block = browser[button: next_button if next_button != -1 else len(browser)]
     assert "browserPinnedDeck =" in block and "dialog.hide()" in block, f"{deck} must pin and hide, not dismiss"
 
+library_start = browser.index('addBrowserButton(actions, "BIBLIOTECA"')
+library_end = browser.index('addBrowserButton(actions, "CERRAR"', library_start)
+library_block = browser[library_start:library_end]
+assert "window.openLibrary" in library_block
+assert library_block.index("webView.evaluateJavascript") < library_block.index("dialog.hide()"), \
+    "The local library must open before the Google dialog is hidden"
+
 close_start = browser.index('addBrowserButton(actions, "CERRAR"')
 close_end = browser.index("        root.addView(actions)", close_start)
 close_block = browser[close_start:close_end]
