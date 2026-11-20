@@ -42,4 +42,19 @@ assert "browser.destroy()" in dismiss_block
 assert "browserWebView = null" in dismiss_block
 
 print("Browser session regression checks passed: D1/D2 hide, reopen reuses same WebView, CERRAR destroys it.")
-print("Not covered: YouTube audio DSP, Android process death, or device-specific background playback.")
+print("Not covered: YouTube audio DSP, Android process death, or device-specific background playback.")\n
+# The native DSP stage must be an app-owned PCM processor, never a global mix effect.
+dsp = Path("app/src/main/java/com/sclive2/dj/ScLiveDspAudioProcessor.kt").read_text(encoding="utf-8")
+assert "BaseAudioProcessor" in dsp
+assert "queueInput(inputBuffer: ByteBuffer)" in dsp
+assert "ENCODING_PCM_16BIT" in dsp and "ENCODING_PCM_FLOAT" in dsp
+assert "updateSettings(value: Settings)" in dsp
+assert "softLimit" in dsp
+assert "AudioEffect" not in dsp and "session 0" not in dsp.lower()
+
+gradle = Path("app/build.gradle.kts").read_text(encoding="utf-8")
+assert 'androidx.media3:media3-exoplayer:1.11.1' in gradle
+
+print("Native DSP source checks passed: PCM processor, live settings, limiter, Media3 dependency.")
+print("Not covered: player wiring, DriverRack control mapping, Bluetooth hardware output, or YouTube browser audio.")
+
