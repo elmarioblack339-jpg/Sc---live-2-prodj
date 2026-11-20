@@ -92,6 +92,8 @@ jobs:
           grep -q 'fun appendRecordingChunk' app/src/main/java/com/sclive2/dj/MainActivity.kt
           grep -q 'fun finishRecording' app/src/main/java/com/sclive2/dj/MainActivity.kt
           grep -q 'nativeSeparate' app/src/main/java/com/sclive2/dj/NativeEngine.kt
+      - name: Validate Browser session preservation
+        run: python3 scripts/validate-browser-session.py
       - name: Build debug APK (retry transient repository failures)
         shell: bash
         run: |
