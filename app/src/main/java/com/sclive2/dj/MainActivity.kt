@@ -207,6 +207,10 @@ class MainActivity : ComponentActivity() {
                 eqFreqHz = readFloatArray("eqFreq", current.eqFreqHz, 5),
                 eqQ = readFloatArray("eqQ", current.eqQ, 5),
                 eqParametric = obj.optString("eqMode", if (current.eqParametric) "parametric" else "graphic") == "parametric",
+                lowAmpOn = obj.optBoolean("lowAmpOn", current.lowAmpOn),
+                highAmpOn = obj.optBoolean("highAmpOn", current.highAmpOn),
+                lowAmpVolume = obj.optDouble("lowAmpVolume", current.lowAmpVolume.toDouble()).toFloat(),
+                highAmpVolume = obj.optDouble("highAmpVolume", current.highAmpVolume.toDouble()).toFloat(),
                 masterDb = obj.optDouble("masterDb", current.masterDb.toDouble()).toFloat(),
                 limiterEnabled = obj.optBoolean("limiterEnabled", current.limiterEnabled)
             ))
