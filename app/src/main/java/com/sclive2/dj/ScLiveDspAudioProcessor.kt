@@ -26,6 +26,10 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
         val eqFreqHz: List<Float> = listOf(60f, 180f, 350f, 600f, 12000f),
         val eqQ: List<Float> = listOf(1f, 1f, 1f, 1f, 1f),
         val eqParametric: Boolean = false,
+        val lowAmpOn: Boolean = true,
+        val highAmpOn: Boolean = true,
+        val lowAmpVolume: Float = 0.75f,
+        val highAmpVolume: Float = 0.75f,
         val masterDb: Float = 0f,
         val limiterEnabled: Boolean = true
     )
@@ -57,6 +61,8 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
             eqGainsDb = List(5) { i -> (value.eqGainsDb.getOrNull(i) ?: 0f).coerceIn(-12f, 12f) },
             eqFreqHz = List(5) { i -> (value.eqFreqHz.getOrNull(i) ?: graphicFreqHz[i]).coerceIn(20f, 20000f) },
             eqQ = List(5) { i -> (value.eqQ.getOrNull(i) ?: 1f).coerceIn(0.25f, 12f) },
+            lowAmpVolume = value.lowAmpVolume.coerceIn(0f, 1.5f),
+            highAmpVolume = value.highAmpVolume.coerceIn(0f, 1.5f),
             masterDb = value.masterDb.coerceIn(-18f, 6f)
         )
     }
@@ -136,7 +142,9 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
                 val high = highState[band][channel] +
                     highAlpha[band] * (eqSample - highState[band][channel])
                 highState[band][channel] = high
-                processed += (high - low) * gains[band]
+                val ampEnabled = if (band < 2) cfg.lowAmpOn else cfg.highAmpOn
+                val ampVolume = if (band < 2) cfg.lowAmpVolume else cfg.highAmpVolume
+                if (ampEnabled) processed += (high - low) * gains[band] * ampVolume
             }
 
             processed *= masterGain
