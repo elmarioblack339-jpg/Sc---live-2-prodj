@@ -553,7 +553,7 @@ class MainActivity : ComponentActivity() {
             // Primero abrir la biblioteca en el WebView principal y ocultar Google
             // solo cuando JavaScript confirme que ejecutó openLibrary.
             webView.evaluateJavascript(
-                "if (typeof window.openLibrary === 'function') { window.openLibrary(0); 'library-opened'; } else { 'library-missing'; }"
+                "if (typeof window.openLibrary === 'function') { window.openLibrary(0); (document.getElementById('library')?.classList.contains('show') && !document.getElementById('proMenu')?.classList.contains('show')) ? 'library-opened' : 'library-not-visible'; } else { 'library-missing'; }"
             ) { result ->
                 if (result == "\"library-opened\"") {
                     dialog.hide()
