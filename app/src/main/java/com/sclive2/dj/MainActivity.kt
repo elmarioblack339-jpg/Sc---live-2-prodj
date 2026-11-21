@@ -808,6 +808,7 @@ class MainActivity : ComponentActivity() {
         filePathCallback = null
         browserDialog?.dismiss()
         uiHandler.removeCallbacks(networkUpdater)
+        webView.evaluateJavascript("window.stopSmartAssist && window.stopSmartAssist();", null)
         webView.stopLoading()
         webView.destroy()
         if (playbackBound) { try { unbindService(playbackConnection) } catch (_: Exception) { } }
