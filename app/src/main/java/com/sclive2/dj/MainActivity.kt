@@ -215,9 +215,9 @@ class MainActivity : ComponentActivity() {
             playbackService?.player?.dsp?.updateSettings(current.copy(
                 enabled = obj.optBoolean("enabled", current.enabled),
                 outputGainsDb = readFloatArray("outputGains", current.outputGainsDb, 6),
-                eqGainsDb = readFloatArray("eq", current.eqGainsDb, 5),
-                eqFreqHz = readFloatArray("eqFreq", current.eqFreqHz, 5),
-                eqQ = readFloatArray("eqQ", current.eqQ, 5),
+                eqGainsDb = readFloatArray("eq", current.eqGainsDb, 24),
+                eqFreqHz = readFloatArray("eqFreq", current.eqFreqHz, 24),
+                eqQ = readFloatArray("eqQ", current.eqQ, 24),
                 eqParametric = obj.optString("eqMode", if (current.eqParametric) "parametric" else "graphic") == "parametric",
                 crossoverHz = obj.optDouble("crossoverHz", current.crossoverHz.toDouble()).toFloat(),
                 crossoverSlope = obj.optInt("crossoverSlope", current.crossoverSlope),
