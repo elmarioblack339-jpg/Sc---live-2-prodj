@@ -23,6 +23,8 @@ import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
+import android.webkit.PermissionRequest
+import android.media.AudioManager
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -123,6 +125,14 @@ class MainActivity : ComponentActivity() {
     private fun audioPermission(): String =
         if (android.os.Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_AUDIO
         else Manifest.permission.READ_EXTERNAL_STORAGE
+
+    private val micPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (::webView.isInitialized) webView.post {
+            webView.evaluateJavascript("window.onMicPermissionResult && window.onMicPermissionResult($granted);", null)
+        }
+    }
 
     private val audioPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -233,6 +243,21 @@ class MainActivity : ComponentActivity() {
                     .setNegativeButton("No", null)
                     .show()
             }
+        }
+
+        @JavascriptInterface
+        fun requestMicPermission() {
+            runOnUiThread {
+                if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                    webView.evaluateJavascript("window.onMicPermissionResult && window.onMicPermissionResult(true);", null)
+                } else micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            }
+        }
+        @JavascriptInterface
+        fun getMusicVolumeStatus(): String {
+            val manager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            return JSONObject().put("current", manager.getStreamVolume(AudioManager.STREAM_MUSIC))
+                .put("maximum", manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)).toString()
         }
 
         @JavascriptInterface
@@ -692,6 +717,14 @@ class MainActivity : ComponentActivity() {
                 }
             }
             webChromeClient = object : WebChromeClient() {
+                override fun onPermissionRequest(request: PermissionRequest?) {
+                    if (request == null) return
+                    runOnUiThread {
+                        val audioRequested = request.resources?.contains(PermissionRequest.RESOURCE_AUDIO_CAPTURE) == true
+                        if (audioRequested && checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) request.grant(arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE)) else request.deny()
+                    }
+                }
+
                 override fun onShowFileChooser(
                     view: WebView?,
                     filePathCallback: ValueCallback<Array<Uri>>?,
