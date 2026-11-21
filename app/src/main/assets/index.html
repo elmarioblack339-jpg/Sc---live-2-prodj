@@ -276,7 +276,7 @@ function resumeAudioContext(){
 }
 function init(){
  if(ctx){resumeAudioContext();return}
- ctx=new(window.AudioContext||window.webkitAudioContext)();
+ try{ctx=new(window.AudioContext||window.webkitAudioContext)({latencyHint:'balanced'})}catch(e){ctx=new(window.AudioContext||window.webkitAudioContext)()}
  ctx.addEventListener('statechange',()=>{if(ctx.state!=='running'&&D.some(d=>d.playing))resumeAudioContext()});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&D.some(d=>d.playing))resumeAudioContext()});
  const g=()=>ctx.createGain(),bq=(t,f,q)=>{const b=ctx.createBiquadFilter();b.type=t;b.frequency.value=f;if(q)b.Q.value=q;return b};
