@@ -68,6 +68,10 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
     private var highPassCoefficients = identity()
     private var lowPassState = Array(6) { Array(0) { BiquadState() } }
     private var highPassState = Array(6) { Array(0) { BiquadState() } }
+    // Cache coefficients and gains between audio buffers; never rebuild the DSP graph per block.
+    private var coefficientSettings: Settings? = null
+    private val outputGains = FloatArray(6)
+    private var masterGain = 1f
 
     fun updateSettings(value: Settings) {
         settings = value.copy(
@@ -105,10 +109,10 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
         subsonicState = Array(channels) { BiquadState() }
         lowPassState = Array(6) { Array(channels) { BiquadState() } }
         highPassState = Array(6) { Array(channels) { BiquadState() } }
-        updateCoefficients()
+        updateCoefficients(settings)
     }
 
-    private fun updateCoefficients() {
+    private fun updateCoefficients(cfg: Settings) {
         val sampleRate = inputAudioFormat.sampleRate.toFloat().coerceAtLeast(1f)
         val cfg = settings
         peqCoefficients = Array(24) { index ->
@@ -128,6 +132,9 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
         subsonicCoefficients = butterworthCoefficients(cfg.subsonicHz, sampleRate, true)
         lowPassCoefficients = butterworthCoefficients(cfg.lowPassHz, sampleRate, false)
         highPassCoefficients = butterworthCoefficients(cfg.highPassHz, sampleRate, true)
+        for (i in 0 until 6) outputGains[i] = dbToLinear(cfg.outputGainsDb[i])
+        masterGain = dbToLinear(cfg.masterDb)
+        coefficientSettings = cfg
     }
 
     override fun queueInput(inputBuffer: ByteBuffer) {
@@ -144,9 +151,7 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
             return
         }
 
-        updateCoefficients()
-        val gains = FloatArray(6) { dbToLinear(cfg.outputGainsDb[it]) }
-        val masterGain = dbToLinear(cfg.masterDb)
+        if (cfg !== coefficientSettings) updateCoefficients(cfg)
         val activeStages = when (cfg.crossoverSlope) { 12 -> 1; 48 -> 4; else -> 2 }
 
         repeat(frames) {
@@ -176,7 +181,7 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
                         bandSample = processBiquad(bandSample, highPassCoefficients, highPassState[band][channel])
                     }
                     val ampVolume = if (isLow) cfg.lowAmpVolume else cfg.highAmpVolume
-                    val bandOutput = bandSample * gains[band] * ampVolume
+                    val bandOutput = bandSample * outputGains[band] * ampVolume
                     if (isLow) lowSum += bandOutput else highSum += bandOutput
                 }
             }
