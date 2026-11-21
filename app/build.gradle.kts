@@ -11,8 +11,8 @@ android {
         applicationId = "com.sclive2.dj.audiofix"
         minSdk = 26
         targetSdk = 35
-        versionCode = 244
-        versionName = "244-audio-visual-load-test"
+        versionCode = 245
+        versionName = "245-audio-buffer-test"
         // Visual refresh is capped at 30 FPS to reduce main-thread pressure during deck playback.
         // Package both 32-bit and 64-bit ARM so older phones can install the DJ app.
         // The RANK engine runs only on Android 10+ arm64 devices.
