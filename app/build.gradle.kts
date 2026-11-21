@@ -11,8 +11,8 @@ android {
         applicationId = "com.sclive2.dj.audiofix"
         minSdk = 26
         targetSdk = 35
-        versionCode = 241
-        versionName = "241-audio-test"
+        versionCode = 242
+        versionName = "242-audio-recovery-test"
         // Package both 32-bit and 64-bit ARM so older phones can install the DJ app.
         // The RANK engine runs only on Android 10+ arm64 devices.
         ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a") }
