@@ -821,13 +821,15 @@ class MainActivity : ComponentActivity() {
     override fun onKeyUp(keyCode: Int, event: android.view.KeyEvent): Boolean {
         if (keyCode == android.view.KeyEvent.KEYCODE_VOLUME_UP ||
             keyCode == android.view.KeyEvent.KEYCODE_VOLUME_DOWN) {
-            if (::webView.isInitialized) {
-                webView.evaluateJavascript("window.finishSystemVolumeChange && window.finishSystemVolumeChange();", null)
-            }
-            nativeVolumeBeforeKey?.let { previous ->
-                playbackService?.player?.player?.volume = previous
-            }
-            nativeVolumeBeforeKey = null
+            uiHandler.postDelayed({
+                if (::webView.isInitialized) {
+                    webView.evaluateJavascript("window.finishSystemVolumeChange && window.finishSystemVolumeChange();", null)
+                }
+                nativeVolumeBeforeKey?.let { previous ->
+                    playbackService?.player?.player?.volume = previous
+                }
+                nativeVolumeBeforeKey = null
+            }, 65)
             return true
         }
         return super.onKeyUp(keyCode, event)
