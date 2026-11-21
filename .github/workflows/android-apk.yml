@@ -1,4 +1,5 @@
 name: Build SC LIVE 2 APK
+# Includes isolated audio-recovery package for side-by-side testing
 on:
   push:
     branches: [sc-live2-build, sc-live2-rebuild-clean, sc-live2-punto-gasolina, sc-live2-rank-stems-browser-rec, sc-live2-audio-recovery-test, sc-live2-audio-recovery-newapp]
