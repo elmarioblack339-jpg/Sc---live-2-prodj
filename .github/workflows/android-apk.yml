@@ -62,6 +62,12 @@ jobs:
           grep -q 'crossoverHz' app/src/main/java/com/sclive2/dj/ScLiveDspAudioProcessor.kt
           grep -q 'advancedSettingsLock' app/src/main/assets/index.html
           grep -q 'eqMode.*parametric' app/src/main/assets/index.html
+          grep -q 'id="sourceAssistPanel"' app/src/main/assets/index.html
+          grep -q 'requestMicPermission' app/src/main/assets/index.html
+          grep -q 'onPermissionRequest' app/src/main/java/com/sclive2/dj/MainActivity.kt
+          grep -q 'android.permission.RECORD_AUDIO' app/src/main/AndroidManifest.xml
+          grep -q 'separateLowHighOutput' app/src/main/java/com/sclive2/dj/ScLiveDspAudioProcessor.kt
+          grep -q 'M.drStereoGain.connect(M.drOut)' app/src/main/assets/index.html
           grep -q 'SC RACK · DSP / DRIVE RACK 260' app/src/main/assets/index.html
           if grep -q 'MTE AUDIO\|MTE CA32\|dbx' app/src/main/assets/index.html; then
             echo "::error::Legacy amplifier or processor branding remains in the interface."
