@@ -10,8 +10,8 @@ android {
         applicationId = "com.sclive2.dj"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.1.0"
+        versionCode = 241
+        versionName = "241"
         // Package both 32-bit and 64-bit ARM so older phones can install the DJ app.
         // The RANK engine runs only on Android 10+ arm64 devices.
         ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a") }
