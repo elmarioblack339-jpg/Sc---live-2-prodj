@@ -721,8 +721,17 @@ class MainActivity : ComponentActivity() {
                 override fun onPermissionRequest(request: PermissionRequest?) {
                     if (request == null) return
                     runOnUiThread {
-                        val audioRequested = request.resources?.contains(PermissionRequest.RESOURCE_AUDIO_CAPTURE) == true
-                        if (audioRequested && checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) request.grant(arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE)) else request.deny()
+                        val requested = request.resources?.toList().orEmpty()
+                        val audioRequested = requested.contains(PermissionRequest.RESOURCE_AUDIO_CAPTURE)
+                        val appPermissionGranted =
+                            checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+                        // WebView asks separately for its web-origin capture permission.
+                        // Grant only microphone capture, and only after Android runtime permission exists.
+                        if (audioRequested && appPermissionGranted) {
+                            request.grant(arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
+                        } else {
+                            request.deny()
+                        }
                     }
                 }
 
