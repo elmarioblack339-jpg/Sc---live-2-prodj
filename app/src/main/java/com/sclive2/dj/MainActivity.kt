@@ -227,7 +227,8 @@ class MainActivity : ComponentActivity() {
                 lowAmpVolume = obj.optDouble("lowAmpVolume", current.lowAmpVolume.toDouble()).toFloat(),
                 highAmpVolume = obj.optDouble("highAmpVolume", current.highAmpVolume.toDouble()).toFloat(),
                 masterDb = obj.optDouble("masterDb", current.masterDb.toDouble()).toFloat(),
-                limiterEnabled = obj.optBoolean("limiterEnabled", current.limiterEnabled)
+                limiterEnabled = obj.optBoolean("limiterEnabled", current.limiterEnabled),
+                separateLowHighOutput = obj.optBoolean("separateLowHighOutput", current.separateLowHighOutput)
             ))
         }
 
