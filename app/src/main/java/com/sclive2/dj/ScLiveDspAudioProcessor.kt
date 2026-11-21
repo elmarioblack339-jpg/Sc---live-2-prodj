@@ -29,6 +29,10 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
         val crossoverHz: Float = 100f,
         val crossoverSlope: Int = 24,
         val subsonicHz: Float = 25f,
+        val lowPassEnabled: Boolean = false,
+        val lowPassHz: Float = 90f,
+        val highPassEnabled: Boolean = false,
+        val highPassHz: Float = 90f,
         val lowAmpOn: Boolean = true,
         val highAmpOn: Boolean = true,
         val lowAmpVolume: Float = 0.75f,
@@ -60,6 +64,10 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
     private var highState = Array(6) { Array(4) { Array(0) { BiquadState() } } }
     private var subsonicCoefficients = identity()
     private var subsonicState = Array(0) { BiquadState() }
+    private var lowPassCoefficients = identity()
+    private var highPassCoefficients = identity()
+    private var lowPassState = Array(6) { Array(0) { BiquadState() } }
+    private var highPassState = Array(6) { Array(0) { BiquadState() } }
 
     fun updateSettings(value: Settings) {
         settings = value.copy(
@@ -70,6 +78,8 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
             crossoverHz = value.crossoverHz.coerceIn(40f, 400f),
             crossoverSlope = if (value.crossoverSlope in listOf(12, 24, 48)) value.crossoverSlope else 24,
             subsonicHz = value.subsonicHz.coerceIn(15f, 50f),
+            lowPassHz = value.lowPassHz.coerceIn(20f, 20000f),
+            highPassHz = value.highPassHz.coerceIn(20f, 1000f),
             lowAmpVolume = value.lowAmpVolume.coerceIn(0f, 1.5f),
             highAmpVolume = value.highAmpVolume.coerceIn(0f, 1.5f),
             masterDb = value.masterDb.coerceIn(-18f, 6f)
@@ -93,6 +103,8 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
         lowState = Array(6) { Array(4) { Array(channels) { BiquadState() } } }
         highState = Array(6) { Array(4) { Array(channels) { BiquadState() } } }
         subsonicState = Array(channels) { BiquadState() }
+        lowPassState = Array(6) { Array(channels) { BiquadState() } }
+        highPassState = Array(6) { Array(channels) { BiquadState() } }
         updateCoefficients()
     }
 
@@ -114,6 +126,8 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
             Array(4) { butterworthCoefficients(bandHigh[band], sampleRate, false) }
         }
         subsonicCoefficients = butterworthCoefficients(cfg.subsonicHz, sampleRate, true)
+        lowPassCoefficients = butterworthCoefficients(cfg.lowPassHz, sampleRate, false)
+        highPassCoefficients = butterworthCoefficients(cfg.highPassHz, sampleRate, true)
     }
 
     override fun queueInput(inputBuffer: ByteBuffer) {
@@ -156,6 +170,11 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
                         bandSample = processBiquad(bandSample, lowCoefficients[band][stage], lowState[band][stage][channel])
                         bandSample = processBiquad(bandSample, highCoefficients[band][stage], highState[band][stage][channel])
                     }
+                    if (isLow && cfg.lowPassEnabled) {
+                        bandSample = processBiquad(bandSample, lowPassCoefficients, lowPassState[band][channel])
+                    } else if (!isLow && cfg.highPassEnabled) {
+                        bandSample = processBiquad(bandSample, highPassCoefficients, highPassState[band][channel])
+                    }
                     val ampVolume = if (isLow) cfg.lowAmpVolume else cfg.highAmpVolume
                     val bandOutput = bandSample * gains[band] * ampVolume
                     if (isLow) lowSum += bandOutput else highSum += bandOutput
@@ -192,6 +211,8 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
         lowState = Array(6) { Array(4) { Array(0) { BiquadState() } } }
         highState = Array(6) { Array(4) { Array(0) { BiquadState() } } }
         subsonicState = Array(0) { BiquadState() }
+        lowPassState = Array(6) { Array(0) { BiquadState() } }
+        highPassState = Array(6) { Array(0) { BiquadState() } }
     }
 
     private fun processBiquad(sample: Float, c: BiquadCoefficients, state: BiquadState): Float {
