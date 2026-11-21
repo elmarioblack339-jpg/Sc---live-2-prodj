@@ -270,9 +270,15 @@ const pos=d=>{if(!d.buf)return 0;let p=d.sp+(d.playing?(ctx.currentTime-d.st)*d.
 const fmt=s=>{s=Math.max(0,s);return Math.floor(s/60)+':'+(s%60).toFixed(1).padStart(4,'0')};
 /* ---------- audio ---------- */
 function smoothAudioParam(param,value,duration=.035){if(!ctx||!param)return;const t=ctx.currentTime;try{param.cancelScheduledValues(t);param.setValueAtTime(param.value,t);param.linearRampToValueAtTime(value,t+duration)}catch(e){try{param.value=value}catch(_){}}}
+function resumeAudioContext(){
+ if(!ctx||ctx.state==='running')return;
+ try{const pending=ctx.resume();if(pending&&pending.catch)pending.catch(()=>{})}catch(e){}
+}
 function init(){
- if(ctx){ctx.state=='suspended'&&ctx.resume();return}
+ if(ctx){resumeAudioContext();return}
  ctx=new(window.AudioContext||window.webkitAudioContext)();
+ ctx.addEventListener('statechange',()=>{if(ctx.state!=='running'&&D.some(d=>d.playing))resumeAudioContext()});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&D.some(d=>d.playing))resumeAudioContext()});
  const g=()=>ctx.createGain(),bq=(t,f,q)=>{const b=ctx.createBiquadFilter();b.type=t;b.frequency.value=f;if(q)b.Q.value=q;return b};
  M.bus=g();M.main=g();M.sp=g();M.mic=g();M.mic.gain.value=0;
  M.dly=ctx.createDelay(1);M.fb=g();M.wet=g();M.wet.gain.value=0;M.sd=ctx.createDelay(1);M.sf=g();
@@ -286,7 +292,7 @@ function init(){
   n.lowSplit1=null;n.lowSplit2=null;n.highSplit1=null;n.highSplit2=null;n.lowBass=null;n.lowMid=null;n.highMid=null;n.highTreble=null;n.lowAmp=null;n.highAmp=null;
   n.ampMeterNodes={};n.ampMeterFilters={};[['bass',65,.8],['midBass',170,1],['mid',1200,1],['treble',6500,.8]].forEach(([k,f,q])=>{const band=bq('bandpass',f,q),an=ctx.createAnalyser();an.fftSize=256;n.ampMeterFilters[k]=band;n.ampMeterNodes[k]=an;n.xf.connect(band);band.connect(an)});
   [n.tr,n.hi,n.mid,n.lo,n.lp,n.hp,n.fd,n.xf].reduce((a,b)=>(a.connect(b),b));n.xf.connect(M.bus);n.hp.connect(n.sn);n.sn.connect(M.sd);M.ns.connect(n.ng);n.ng.connect(n.fd)});
- reg.forEach(f=>f());ctx.resume();
+ reg.forEach(f=>f());resumeAudioContext();
 }
 function startSrc(d){const s=ctx.createBufferSource(),sg=ctx.createGain();s.buffer=d.buf;s.playbackRate.value=d.rate;if(d.loop.on){s.loop=true;s.loopStart=d.loop.a;s.loopEnd=d.loop.b}const now=ctx.currentTime;sg.gain.setValueAtTime(0,now);sg.gain.linearRampToValueAtTime(1,now+.012);s.connect(sg);sg.connect(d.n.tr);d.st=now;s.onended=()=>{if(d.src===s&&d.playing){d.playing=0;d.sp=0;d.src=null;d.srcGain=null;if(!d.loop.on)handleTrackEnd(d)}};s.start(0,d.sp);d.src=s;d.srcGain=sg}
 function stopSrc(d){const s=d.src;if(s){s.onended=null;try{s.stop()}catch(e){}}d.src=null}
