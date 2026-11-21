@@ -60,8 +60,10 @@ class MainActivity : ComponentActivity() {
         }
         override fun onServiceDisconnected(name: ComponentName?) { playbackService = null }
     }
-    private fun startPlaybackForeground() {
+    private fun startPlaybackForeground(nativeDspActive: Boolean? = null, webAudioActive: Boolean? = null) {
         val intent = Intent(this, ScLivePlaybackService::class.java)
+        nativeDspActive?.let { intent.putExtra(ScLivePlaybackService.EXTRA_NATIVE_DSP_ACTIVE, it) }
+        webAudioActive?.let { intent.putExtra(ScLivePlaybackService.EXTRA_WEB_AUDIO_ACTIVE, it) }
         try {
             if (android.os.Build.VERSION.SDK_INT >= 26) startForegroundService(intent) else startService(intent)
         } catch (_: Exception) { }
@@ -101,7 +103,7 @@ class MainActivity : ComponentActivity() {
                 if (cursor.moveToFirst()) cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME)) else null
             } ?: "Audio DSP"
         } catch (_: Exception) { "Audio DSP" }
-        startPlaybackForeground()
+        startPlaybackForeground(nativeDspActive = true)
         val ok = playbackService?.player?.play(uri.toString(), title) == true
         webView.evaluateJavascript("window.onNativeDspStart && window.onNativeDspStart($ok);", null)
     }
@@ -173,10 +175,23 @@ class MainActivity : ComponentActivity() {
 
     inner class AudioBridge {
         @JavascriptInterface
+        fun setWebAudioPlaybackActive(active: Boolean) {
+            runOnUiThread {
+                if (active) {
+                    // Start the mediaPlayback foreground service from the explicit Play action.
+                    startPlaybackForeground(webAudioActive = true)
+                } else {
+                    playbackService?.setWebAudioActive(false)
+                }
+            }
+        }
+
+        @JavascriptInterface
         fun playNativeDsp(uri: String, title: String) {
             runOnUiThread {
-                startPlaybackForeground()
+                startPlaybackForeground(nativeDspActive = true)
                 val ok = playbackService?.player?.play(uri, title) == true
+                if (!ok) playbackService?.setNativeDspActive(false)
                 webView.evaluateJavascript("window.onNativeDspStart && window.onNativeDspStart($ok);", null)
             }
         }
@@ -192,9 +207,9 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        @JavascriptInterface fun pauseNativeDsp() { runOnUiThread { playbackService?.player?.pause() } }
-        @JavascriptInterface fun resumeNativeDsp() { runOnUiThread { playbackService?.player?.resume() } }
-        @JavascriptInterface fun stopNativeDsp() { runOnUiThread { playbackService?.let { it.player.stop(); it.stopPlaybackForeground() } } }
+        @JavascriptInterface fun pauseNativeDsp() { runOnUiThread { playbackService?.let { it.player.pause(); it.setNativeDspActive(false) } } }
+        @JavascriptInterface fun resumeNativeDsp() { runOnUiThread { playbackService?.let { it.setNativeDspActive(true); it.player.resume() } } }
+        @JavascriptInterface fun stopNativeDsp() { runOnUiThread { playbackService?.let { it.player.stop(); it.setNativeDspActive(false) } } }
         @JavascriptInterface fun seekNativeDspBy(deltaMs: Long) { runOnUiThread { playbackService?.player?.seekBy(deltaMs) } }
         @JavascriptInterface fun seekNativeDspTo(positionMs: Long) { runOnUiThread { playbackService?.player?.seekTo(positionMs) } }
         @JavascriptInterface fun getNativeDspStatus(): String = playbackService?.player?.status() ?: JSONObject().put("state", "UNAVAILABLE").toString()
