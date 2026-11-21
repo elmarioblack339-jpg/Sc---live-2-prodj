@@ -99,9 +99,9 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
     private fun updateCoefficients() {
         val sampleRate = inputAudioFormat.sampleRate.toFloat().coerceAtLeast(1f)
         val cfg = settings
-        peqCoefficients = Array(5) { index ->
-            val frequency = cfg.eqFreqHz[index]
-            val q = cfg.eqQ[index]
+        peqCoefficients = Array(24) { index ->
+            val frequency = if (cfg.eqParametric) cfg.eqFreqHz[index] else graphicFreqHz[index]
+            val q = if (cfg.eqParametric) cfg.eqQ[index] else 1.4f
             peakingCoefficients(frequency, cfg.eqGainsDb[index], q, sampleRate)
         }
         val splitHz = cfg.crossoverHz.coerceIn(90f, 400f)
