@@ -466,7 +466,13 @@ class MainActivity : ComponentActivity() {
                     else -> "NORMAL"
                 }
             } else "No disponible en esta versión de Android"
-            return JSONObject().put("cpu", cpu).put("thermal", thermal).toString()
+            // PSS estima la RAM física atribuible al proceso completo de SC LIVE 2 (en MB).
+            val ramMb = android.os.Debug.getPss().toDouble() / 1024.0
+            return JSONObject()
+                .put("cpu", cpu)
+                .put("ramMb", Math.round(ramMb * 10.0) / 10.0)
+                .put("thermal", thermal)
+                .toString()
         }
 
         @JavascriptInterface fun openWifiSettings() { runOnUiThread { try { if (android.os.Build.VERSION.SDK_INT >= 29) startActivity(Intent(Settings.Panel.ACTION_WIFI)) else startActivity(Intent(Settings.ACTION_WIFI_SETTINGS)) } catch (_: Exception) { startActivity(Intent(Settings.ACTION_WIFI_SETTINGS)) } } }
