@@ -34,7 +34,8 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
         val lowAmpVolume: Float = 0.75f,
         val highAmpVolume: Float = 0.75f,
         val masterDb: Float = 0f,
-        val limiterEnabled: Boolean = true
+        val limiterEnabled: Boolean = true,
+        val separateLowHighOutput: Boolean = false
     )
 
     private data class BiquadCoefficients(
@@ -164,8 +165,10 @@ class ScLiveDspAudioProcessor : BaseAudioProcessor() {
             val lowOut = (lowSum / channels * masterGain).coerceIn(-1f, 1f)
             val highOut = (highSum / channels * masterGain).coerceIn(-1f, 1f)
             if (channels >= 2) {
-                val left = if (cfg.limiterEnabled) softLimit(lowOut) else lowOut
-                val right = if (cfg.limiterEnabled) softLimit(highOut) else highOut
+                val leftRaw = if (cfg.separateLowHighOutput) lowOut else (lowOut + highOut).coerceIn(-1f, 1f)
+                val rightRaw = if (cfg.separateLowHighOutput) highOut else leftRaw
+                val left = if (cfg.limiterEnabled) softLimit(leftRaw) else leftRaw
+                val right = if (cfg.limiterEnabled) softLimit(rightRaw) else rightRaw
                 writeSample(output, left, bytesPerSample)
                 writeSample(output, right, bytesPerSample)
             } else {
