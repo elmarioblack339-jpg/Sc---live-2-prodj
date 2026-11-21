@@ -792,13 +792,54 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private var nativeVolumeBeforeKey: Float? = null
+
+    override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent): Boolean {
+        val direction = when (keyCode) {
+            android.view.KeyEvent.KEYCODE_VOLUME_UP -> AudioManager.ADJUST_RAISE
+            android.view.KeyEvent.KEYCODE_VOLUME_DOWN -> AudioManager.ADJUST_LOWER
+            else -> return super.onKeyDown(keyCode, event)
+        }
+        if (event.repeatCount == 0) {
+            if (::webView.isInitialized) {
+                webView.evaluateJavascript("window.prepareForSystemVolumeChange && window.prepareForSystemVolumeChange();", null)
+            }
+            val nativePlayer = playbackService?.player?.player
+            nativeVolumeBeforeKey = nativePlayer?.volume
+            if (nativePlayer != null) nativePlayer.volume = 0f
+            uiHandler.postDelayed({
+                val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, direction, AudioManager.FLAG_SHOW_UI)
+            }, 28)
+        } else {
+            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, direction, AudioManager.FLAG_SHOW_UI)
+        }
+        return true
+    }
+
+    override fun onKeyUp(keyCode: Int, event: android.view.KeyEvent): Boolean {
+        if (keyCode == android.view.KeyEvent.KEYCODE_VOLUME_UP ||
+            keyCode == android.view.KeyEvent.KEYCODE_VOLUME_DOWN) {
+            if (::webView.isInitialized) {
+                webView.evaluateJavascript("window.finishSystemVolumeChange && window.finishSystemVolumeChange();", null)
+            }
+            nativeVolumeBeforeKey?.let { previous ->
+                playbackService?.player?.player?.volume = previous
+            }
+            nativeVolumeBeforeKey = null
+            return true
+        }
+        return super.onKeyUp(keyCode, event)
+    }
+
     @Deprecated("Deprecated in Android API")
     override fun onBackPressed() {
         AlertDialog.Builder(this).setMessage("¿Estás seguro de que deseas salir de SC LIVE 2?")
             .setPositiveButton("Sí") { _, _ ->
                 if (::webView.isInitialized) {
                     webView.evaluateJavascript("window.prepareAudioForExit && window.prepareAudioForExit();", null)
-                    webView.postDelayed({ finish() }, 140)
+                    webView.postDelayed({ finish() }, 220)
                 } else {
                     finish()
                 }
