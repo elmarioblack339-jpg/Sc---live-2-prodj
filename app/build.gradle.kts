@@ -7,12 +7,12 @@ android {
     compileSdk = 35
     ndkVersion = "27.2.12479018"
     defaultConfig {
-        // Separate test package so it installs beside the existing signed SC LIVE 2.
-        applicationId = "com.sclive2.dj.audiofix"
+        // Independent test package: keeps the existing tuned installation untouched.
+        applicationId = "com.sclive2.dj.audiofix247"
         minSdk = 26
         targetSdk = 35
-        versionCode = 247
-        versionName = "247-web-audio-foreground"
+        versionCode = 248
+        versionName = "248-independent-install"
         // Visual refresh is capped at 30 FPS to reduce main-thread pressure during deck playback.
         // Package both 32-bit and 64-bit ARM so older phones can install the DJ app.
         // The RANK engine runs only on Android 10+ arm64 devices.
