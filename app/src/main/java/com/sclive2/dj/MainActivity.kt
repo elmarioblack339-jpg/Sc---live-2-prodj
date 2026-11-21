@@ -105,6 +105,7 @@ class MainActivity : ComponentActivity() {
         } catch (_: Exception) { "Audio DSP" }
         startPlaybackForeground(nativeDspActive = true)
         val ok = playbackService?.player?.play(uri.toString(), title) == true
+        if (!ok) playbackService?.setNativeDspActive(false)
         webView.evaluateJavascript("window.onNativeDspStart && window.onNativeDspStart($ok);", null)
     }
 
