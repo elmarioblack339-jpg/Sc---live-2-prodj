@@ -7,11 +7,12 @@ android {
     compileSdk = 35
     ndkVersion = "27.2.12479018"
     defaultConfig {
-        applicationId = "com.sclive2.dj"
+        // Separate test package so it installs beside the existing signed SC LIVE 2.
+        applicationId = "com.sclive2.dj.audiofix"
         minSdk = 26
         targetSdk = 35
         versionCode = 241
-        versionName = "241"
+        versionName = "241-audio-test"
         // Package both 32-bit and 64-bit ARM so older phones can install the DJ app.
         // The RANK engine runs only on Android 10+ arm64 devices.
         ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a") }
