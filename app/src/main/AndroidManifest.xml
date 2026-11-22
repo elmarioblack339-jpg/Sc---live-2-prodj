@@ -11,7 +11,7 @@
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher"
         android:theme="@style/AppTheme"
-        android:label="SC LIVE 2 · Prueba audio"
+        android:label="BQ DJ LIVE"
         android:usesCleartextTraffic="false"
         android:hardwareAccelerated="true">
         <service
