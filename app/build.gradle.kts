@@ -24,8 +24,8 @@ android {
         applicationId = "com.sclive2.dj.audiofix247"
         minSdk = 26
         targetSdk = 35
-        versionCode = 251
-        versionName = "251-bq-dj-live-automix"
+        versionCode = 252
+        versionName = "252-bq-dj-live-track-skip"
         // Visual refresh is capped at 30 FPS to reduce main-thread pressure during deck playback.
         // Package both 32-bit and 64-bit ARM so older phones can install the DJ app.
         // The RANK engine runs only on Android 10+ arm64 devices.
