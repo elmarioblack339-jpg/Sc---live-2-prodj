@@ -1,8 +1,11 @@
 name: Build BQ DJ LIVE APK
+# Ultra 3D visual branch: build the complete UI package for validation.
+# Realistic hardware-surface pass included in the latest UI revision.
+# Version 250 contains the complete Ultra 3D hardware finish.
 # Includes isolated audio-recovery package for side-by-side testing
 on:
   push:
-    branches: [sc-live2-build, sc-live2-rebuild-clean, sc-live2-punto-gasolina, sc-live2-rank-stems-browser-rec, sc-live2-audio-recovery-test, sc-live2-audio-recovery-newapp, bq-dj-live-rebrand]
+    branches: [sc-live2-build, sc-live2-rebuild-clean, sc-live2-punto-gasolina, sc-live2-rank-stems-browser-rec, sc-live2-audio-recovery-test, sc-live2-audio-recovery-newapp, bq-dj-live-rebrand, bq-dj-live-ultra3d]
   workflow_dispatch:
 permissions:
   contents: read
