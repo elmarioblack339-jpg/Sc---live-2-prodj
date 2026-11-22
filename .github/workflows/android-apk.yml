@@ -1,4 +1,5 @@
 name: Build BQ DJ LIVE APK
+# Ultra 3D visual branch: build the complete UI package for validation.
 # Includes isolated audio-recovery package for side-by-side testing
 on:
   push:
