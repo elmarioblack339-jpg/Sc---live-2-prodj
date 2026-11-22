@@ -256,7 +256,7 @@ class MainActivity : ComponentActivity() {
         fun confirmRecording() {
             runOnUiThread {
                 AlertDialog.Builder(this@MainActivity)
-                    .setTitle("SC LIVE 2 · REC")
+                    .setTitle("BQ DJ LIVE · REC")
                     .setMessage("¿Deseas grabar tu sesión en vivo? Se guardará únicamente el audio de los dos decks.")
                     .setPositiveButton("Sí") { _, _ ->
                         webView.evaluateJavascript("window.startRecordingConfirmed && window.startRecordingConfirmed();", null)
@@ -389,7 +389,7 @@ class MainActivity : ComponentActivity() {
                     put(MediaStore.Audio.Media.DISPLAY_NAME, safeName)
                     put(MediaStore.Audio.Media.MIME_TYPE, "audio/webm")
                     if (android.os.Build.VERSION.SDK_INT >= 29) {
-                        put(MediaStore.Audio.Media.RELATIVE_PATH, "Music/SC LIVE 2/Grabaciones")
+                        put(MediaStore.Audio.Media.RELATIVE_PATH, "Music/BQ DJ LIVE/Grabaciones")
                         put(MediaStore.Audio.Media.IS_PENDING, 1)
                     }
                 }
@@ -482,7 +482,7 @@ class MainActivity : ComponentActivity() {
                     else -> "NORMAL"
                 }
             } else "No disponible en esta versión de Android"
-            // PSS estima la RAM física atribuible al proceso completo de SC LIVE 2 (en MB).
+            // PSS estima la RAM física atribuible al proceso completo de BQ DJ LIVE (en MB).
             val ramMb = android.os.Debug.getPss().toDouble() / 1024.0
             return JSONObject()
                 .put("cpu", cpu)
@@ -553,7 +553,7 @@ class MainActivity : ComponentActivity() {
         }
         val top = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         val title = TextView(this).apply {
-            text = "GOOGLE · SC LIVE 2"
+            text = "GOOGLE · BQ DJ LIVE"
             setTextColor(Color.WHITE)
             textSize = 14f
             typeface = Typeface.DEFAULT_BOLD
@@ -821,7 +821,7 @@ class MainActivity : ComponentActivity() {
 
     @Deprecated("Deprecated in Android API")
     override fun onBackPressed() {
-        AlertDialog.Builder(this).setMessage("¿Estás seguro de que deseas salir de SC LIVE 2?")
+        AlertDialog.Builder(this).setMessage("¿Estás seguro de que deseas salir de BQ DJ LIVE?")
             .setPositiveButton("Sí") { _, _ ->
                 if (::webView.isInitialized) {
                     webView.evaluateJavascript("window.prepareAudioForExit && window.prepareAudioForExit();", null)
