@@ -69,7 +69,7 @@ jobs:
           grep -q 'android.permission.RECORD_AUDIO' app/src/main/AndroidManifest.xml
           grep -q 'separateLowHighOutput' app/src/main/java/com/sclive2/dj/ScLiveDspAudioProcessor.kt
           grep -q 'M.drStereoGain.connect(M.drOut)' app/src/main/assets/index.html
-          grep -q 'SC RACK · DSP / DRIVE RACK 260' app/src/main/assets/index.html
+          grep -q 'BQ RACK<br>DSP · DRIVE RACK 260' app/src/main/assets/index.html
           if grep -q 'MTE AUDIO\|MTE CA32\|dbx' app/src/main/assets/index.html; then
             echo "::error::Legacy amplifier or processor branding remains in the interface."
             exit 1
@@ -82,7 +82,7 @@ jobs:
             echo "::error::A decorative amplifier photo must not be used."
             exit 1
           fi
-      - name: Validate embedded SC LIVE 2 JavaScript and REC bridge
+      - name: Validate embedded BQ DJ LIVE JavaScript and REC bridge
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -121,6 +121,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: SC-LIVE-2-debug
+          name: BQ-DJ-LIVE-debug
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
