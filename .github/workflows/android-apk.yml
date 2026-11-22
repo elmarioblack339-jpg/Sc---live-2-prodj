@@ -1,8 +1,8 @@
-name: Build SC LIVE 2 APK
+name: Build BQ DJ LIVE APK
 # Includes isolated audio-recovery package for side-by-side testing
 on:
   push:
-    branches: [sc-live2-build, sc-live2-rebuild-clean, sc-live2-punto-gasolina, sc-live2-rank-stems-browser-rec, sc-live2-audio-recovery-test, sc-live2-audio-recovery-newapp]
+    branches: [sc-live2-build, sc-live2-rebuild-clean, sc-live2-punto-gasolina, sc-live2-rank-stems-browser-rec, sc-live2-audio-recovery-test, sc-live2-audio-recovery-newapp, bq-dj-live-rebrand]
   workflow_dispatch:
 permissions:
   contents: read
@@ -51,7 +51,7 @@ jobs:
           }
           grep -q 'ampLowVolumeDial' app/src/main/assets/index.html
           grep -q 'ampHighVolumeDial' app/src/main/assets/index.html
-          grep -q 'class="ampFaceBrand">SC AMPLIFICATION' app/src/main/assets/index.html
+          grep -q 'class="ampFaceBrand">BQ AMPLIFICATION' app/src/main/assets/index.html
           grep -q 'ampLowMeter' app/src/main/assets/index.html
           grep -q 'ampHighMeter' app/src/main/assets/index.html
           grep -q "M.drBands=\[\['LOW 1'" app/src/main/assets/index.html
