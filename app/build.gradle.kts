@@ -6,6 +6,19 @@ android {
     namespace = "com.sclive2.dj"
     compileSdk = 35
     ndkVersion = "27.2.12479018"
+    signingConfigs {
+        create("stableDebug") {
+            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
+            storePassword = "android"
+            keyAlias = "AndroidDebugKey"
+            keyPassword = "android"
+        }
+    }
+    buildTypes {
+        getByName("debug") {
+            signingConfig = signingConfigs.getByName("stableDebug")
+        }
+    }
     defaultConfig {
         // Independent test package: keeps the existing tuned installation untouched.
         applicationId = "com.sclive2.dj.audiofix247"
