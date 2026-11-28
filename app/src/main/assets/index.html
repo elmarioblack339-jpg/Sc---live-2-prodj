@@ -371,7 +371,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopSmartAs
 
 const D=[0,1,2,3].map(i=>({i,buf:null,pk:null,bpm:0,sp:0,st:0,playing:0,pr:1,bd:1,rate:1,cue:0,hot:[],loop:{a:0,b:0,on:0},mode:'cue',al:4,name:'',in:null,vin:true,sv:.5,pads:[],repeatTrack:false,shuffle:false,continuous:false,autoMixNext:null,autoMixTransition:null,autoMixLoading:false,autoMixToken:0,sourceType:'',sourceIndex:-1,auxBuf:null,auxName:'',auxSrc:null,revBuf:null,scratchSrc:null,scratchGain:null}));
 const activeDeckIndices=[0,1],deckPanels=[];const panelDeck=slot=>new Proxy({}, {get:(_,key)=>D[activeDeckIndices[slot]][key],set:(_,key,value)=>(D[activeDeckIndices[slot]][key]=value,true)});
-function selectLogicalDeck(slot,logical){activeDeckIndices[slot]=logical;const refs=deckPanels[slot],d=D[logical];if(!refs)return;Object.assign(d,refs);d.pf.set(1.5-d.pr);d.pb.classList.toggle('on',!!d.playing);d.repeatBtn.classList.toggle('on',!!d.repeatTrack);d.shuffleBtn.classList.toggle('on',!!d.shuffle);d.continuousBtn.classList.toggle('on',!!d.continuous);d.vinBtn.classList.toggle('on',!!d.vin);if(d.delBtn)d.delBtn.classList.toggle('on',!!d.deleteMode);d.modeButtons.forEach((b,j)=>{if(j>0&&j<5)b.classList.toggle('on',j===(['cue','loop','roll','rank'].indexOf(d.mode)+1))});padsUI(d)}
+function selectLogicalDeck(slot,logical){activeDeckIndices[slot]=logical;const refs=deckPanels[slot],d=D[logical];if(!refs)return;Object.assign(d,refs);const alValues=[.5,1,2,4,8,16],alIndex=Math.max(0,alValues.indexOf(d.al));if(d.alKnob)d.alKnob.set((alIndex+.5)/6);if(d.levelKnob)d.levelKnob.set(d.n?Math.max(0,Math.min(1,d.n.tr.gain.value/1.6)):.5);if(d.highKnob)d.highKnob.set(d.n?Math.max(0,Math.min(1,d.n.hi.gain.value/48+.5)):.5);if(d.midKnob)d.midKnob.set(d.n?Math.max(0,Math.min(1,d.n.mid.gain.value/48+.5)):.5);if(d.lowKnob)d.lowKnob.set(d.n?Math.max(0,Math.min(1,d.n.lo.gain.value/48+.5)):.5);if(d.sweepKnob)d.sweepKnob.set(d.sv==null?.5:d.sv);d.pf.set(1.5-d.pr);d.pb.classList.toggle('on',!!d.playing);d.repeatBtn.classList.toggle('on',!!d.repeatTrack);d.shuffleBtn.classList.toggle('on',!!d.shuffle);d.continuousBtn.classList.toggle('on',!!d.continuous);d.vinBtn.classList.toggle('on',!!d.vin);if(d.delBtn)d.delBtn.classList.toggle('on',!!d.deleteMode);d.modeButtons.forEach((b,j)=>{if(j>0&&j<5)b.classList.toggle('on',j===(['cue','loop','roll','rank'].indexOf(d.mode)+1))});padsUI(d)}
 const pos=d=>{if(!d.buf)return 0;let p=d.sp+(d.playing?(ctx.currentTime-d.st)*d.rate:0);if(d.loop.on&&d.playing&&p>d.loop.b)p=d.loop.a+(p-d.loop.a)%(d.loop.b-d.loop.a);return Math.min(p,d.buf.duration)};
 const fmt=s=>{s=Math.max(0,s);return Math.floor(s/60)+':'+(s%60).toFixed(1).padStart(4,'0')};
 /* ---------- audio ---------- */
@@ -502,7 +502,7 @@ function pad(d,k){if(d.mode==='rank'){if(k===3){if(!d.auxBuf){rankAuxTarget=d.i;
  else if(d.mode=='roll'){d.rl={t:ctx.currentTime,p};setLoop(d,p,p+[.25,.5,1,2][k]*bl,1)}}
 function padUp(d){if(d.mode=='roll'&&d.rl){const r=d.rl;d.rl=null;const q=r.p+(ctx.currentTime-r.t)*d.rate;setLoop(d,0,0,0);seek(d,q)}}
 function deck(i){const o=i*582,d=panelDeck(i);
- lb(o+40,203,'AUTO LOOP');knob(o+40,224,28,.5,v=>{d.al=[.5,1,2,4,8,16][Math.min(5,Math.floor(v*6))]},'',()=>{if(!d.buf)return;if(d.loop.on)setLoop(d,0,0,0);else{const p=pos(d);setLoop(d,p,p+d.al*60/(d.bpm||120),1)}});lb(o+40,246,'SIZE/MOVE');
+ lb(o+40,203,'AUTO LOOP');d.alKnob=knob(o+40,224,28,.5,v=>{d.al=[.5,1,2,4,8,16][Math.min(5,Math.floor(v*6))]},'',()=>{if(!d.buf)return;if(d.loop.on)setLoop(d,0,0,0);else{const p=pos(d);setLoop(d,p,p+d.al*60/(d.bpm||120),1)}});lb(o+40,246,'SIZE/MOVE');
  btn(o+28,267,24,14,'IN','',()=>{d.in=pos(d)});btn(o+58,267,24,14,'OUT','',()=>{if(d.loop.on)setLoop(d,0,0,0);else if(d.in!=null){const b=pos(d);if(b>d.in+.05)setLoop(d,d.in,b,1)}});lb(o+43,282,'MANUAL LOOP');
  btn(o+46,300,44,18,'CENSOR','',()=>{if(!d.buf)return;d.g0=pos(d);d.g1=ctx.currentTime;d.ci=setInterval(()=>seek(d,pos(d)-.35),90)},()=>{clearInterval(d.ci);if(d.buf&&d.g1)seek(d,d.g0+(ctx.currentTime-d.g1)*d.rate)});lb(o+46,316,'REVERSE');
  const J=el('jg',o+73,265,220,220);d.jg=J;
@@ -526,7 +526,7 @@ function deck(i){const o=i*582,d=panelDeck(i);
  mn.forEach((t,k)=>{mbs[k]=btn(o+mx[k],502,23,14,t,k==1?'on':'',()=>{if(k==0)d.sh=1;else if(k<5){d.mode=mm[k];mbs.forEach((b,j)=>j>0&&j<5&&b.classList.toggle('on',j==k));padsUI(d)}else if(k===5)selectLogicalDeck(i,i);else if(k===6)selectLogicalDeck(i,i+2)},()=>{if(k==0)d.sh=0})});
  const del=btn(o+292,502,28,14,'DEL','',()=>{if(d.mode==='rank'){if(d.auxSrc){try{d.auxSrc.stop()}catch(e){}d.auxSrc=null}d.auxBuf=null;d.auxName='';msg('Audio adicional del Deck '+(d.i+1)+' eliminado');return}if(d.mode!=='cue'){msg('Cambia a modo CUE para borrar Hot Cues');return}if(!d.buf){msg('Carga una canción antes de borrar Hot Cues');return}d.deleteMode=!d.deleteMode;del.classList.toggle('on',d.deleteMode);msg(d.deleteMode?'DEL activo: toca el Hot Cue que deseas borrar':'Borrado de Hot Cue cancelado')});
  [125,170,213,255].forEach((x,k)=>{d.pads[k]=btn(o+x,534,38,28,'','pad',()=>{if(d.deleteMode){if(d.hot[k]==null){msg('El Hot Cue '+(k+1)+' ya está vacío');return}d.hot[k]=null;saveHotCues(d);d.deleteMode=false;del.classList.remove('on');padsUI(d);msg('Hot Cue '+(k+1)+' eliminado del Deck '+(d.i+1));return}pad(d,k)},()=>padUp(d))});
- const panelTitle=el('tt',o+178,200,0,0,'DECK '+(d.i+1));panelTitle.dataset.deckPanel=String(i);d.delBtn=del;deckPanels[i]={pl:d.pl,rg:d.rg,pb:d.pb,jg:d.jg,pf:d.pf,pads:d.pads,repeatBtn:d.repeatBtn,shuffleBtn:d.shuffleBtn,continuousBtn:d.continuousBtn,vinBtn:d.vinBtn,delBtn:d.delBtn,modeButtons:mbs};
+ const panelTitle=el('tt',o+178,200,0,0,'DECK '+(d.i+1));panelTitle.dataset.deckPanel=String(i);d.delBtn=del;deckPanels[i]={pl:d.pl,rg:d.rg,pb:d.pb,jg:d.jg,pf:d.pf,alKnob:d.alKnob,pads:d.pads,repeatBtn:d.repeatBtn,shuffleBtn:d.shuffleBtn,continuousBtn:d.continuousBtn,vinBtn:d.vinBtn,delBtn:d.delBtn,modeButtons:mbs};
 }
 function chrome(){
  el('gr',13,88,277,102,'');el('gr',667,88,277,102,'');el('bd',12,87,933,476,'');
@@ -555,8 +555,7 @@ lb(404,358,'SWEEP FX');
 lb(399,412,'CUE MIX');knob(399,430,22,.5,()=>{});lb(399,448,'LEVEL');knob(399,466,22,.5,()=>{});lb(399,484,'PHONES');
 const eqdb=v=>(v-.5)*48;
 [0,1].forEach(i=>{const x=455+i*47,d=panelDeck(i);
- [['LEVEL',209,v=>{if(ctx)d.n.tr.gain.value=v*1.6}],['HIGH',247,v=>{if(ctx)d.n.hi.gain.value=eqdb(v)}],['MID',287,v=>{if(ctx)d.n.mid.gain.value=eqdb(v)}],['LOW',327,v=>{if(ctx)d.n.lo.gain.value=eqdb(v)}]].forEach(([t,y,f])=>{knob(x,y,24,.5,f);lb(x,y+16,t)});
- knob(x,368,26,.5,v=>sweep(i,v),'');lb(x,385,'SWEEP FX');
+ d.levelKnob=knob(x,209,24,.5,v=>{if(ctx)d.n.tr.gain.value=v*1.6});lb(x,225,'LEVEL');d.highKnob=knob(x,247,24,.5,v=>{if(ctx)d.n.hi.gain.value=eqdb(v)});lb(x,263,'HIGH');d.midKnob=knob(x,287,24,.5,v=>{if(ctx)d.n.mid.gain.value=eqdb(v)});lb(x,303,'MID');d.lowKnob=knob(x,327,24,.5,v=>{if(ctx)d.n.lo.gain.value=eqdb(v)});lb(x,343,'LOW');d.sweepKnob=knob(x,368,26,.5,v=>sweep(i,v),'');lb(x,385,'SWEEP FX');deckPanels[i].levelKnob=d.levelKnob;deckPanels[i].highKnob=d.highKnob;deckPanels[i].midKnob=d.midKnob;deckPanels[i].lowKnob=d.lowKnob;deckPanels[i].sweepKnob=d.sweepKnob;
  btn(x,402,26,12,'CUE','',b=>b.classList.toggle('on'));
  fader(x,422,70,.8,v=>{if(ctx)d.n.fd.gain.value=v*v*1.2},0,30,14);el('tt',x,498,0,0,String(i+1)).style.fontSize='11px'});
 let xfCurve='smooth';
