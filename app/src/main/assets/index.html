@@ -286,6 +286,50 @@ body.ultra-3d-mode .bt.cue,body.ultra-3d-mode .bt.pl{transform:none}
 @media(max-width:520px){#driverRack{padding:7px 5px}#drBrand{grid-template-columns:55px minmax(80px,1fr) 48px 68px;gap:4px;font-size:8px}#drModel{display:none}#drFace{grid-template-columns:52px minmax(105px,1fr) 48px 105px minmax(150px,1.4fr);gap:4px;padding:5px 3px}#drLogoBlock strong{font-size:18px}#drScreen{min-height:82px;padding:5px}#drScreenName{font-size:9px}#drScreenInfo{font-size:7px}#drEncoder{width:42px;height:42px}#drEncoder:before{height:11px;transform-origin:50% 18px}#drButtons{gap:3px;padding:1px}.drBtn{font-size:6px;min-height:19px}#drLeds{height:50px}.drLeds{height:50px;width:9px}.drChannel label{font-size:5px}#drFoot{font-size:6px}}
 
 #sourceAssistPanel{margin:10px 0 18px;padding:10px;border:1px solid #41617f;border-radius:8px;background:linear-gradient(145deg,#101b2a,#080e17);color:#eaf3ff;font-family:Arial,sans-serif;box-shadow:0 5px 14px #0008}#sourceAssistPanel h3{margin:0 0 8px;color:#8fd5ff;font-size:12px;letter-spacing:.1em}#sourceChoices,#channelChoices{display:flex;flex-wrap:wrap;gap:7px;margin:7px 0}.sourceChoice,.channelChoice,#smartAssistToggle{border:1px solid #40536b;border-radius:5px;background:#172638;color:#dceaff;padding:8px 10px;font-size:10px;font-weight:900;letter-spacing:.04em}.sourceChoice.active,.channelChoice.active{border-color:#35c9ff;background:#123d5a;color:#fff;box-shadow:0 0 8px #159bdb66}.sourceChoice:disabled,.channelChoice:disabled{opacity:.35}#sourceHelp{font-size:9px;color:#aebfd2;line-height:1.4}#smartAssistBar{display:flex;align-items:center;gap:8px;margin-top:9px;padding-top:8px;border-top:1px solid #293c50}#smartAssistToggle{margin-left:auto;border-color:#238c61;background:#123b2c;color:#aaffd0}#smartAssistToggle.off{border-color:#8b5360;background:#3b1821;color:#ffc5cb}#smartAssistStatus{font:9px 'Courier New',monospace;color:#9ccfff}#smartAssistMessages{min-height:16px;margin-top:7px;color:#ffe19a;font-size:10px;line-height:1.45;white-space:pre-line}@media(max-width:520px){#sourceAssistPanel{padding:8px 6px}.sourceChoice,.channelChoice,#smartAssistToggle{padding:7px 8px;font-size:9px}}
+
+/* BQ DJ LIVE · Browser inspirado en la biblioteca SC LIVE 4 */
+#library{padding:clamp(8px,1.5vw,20px);background:radial-gradient(ellipse at 50% 0%,#14243b 0%,#080d16 48%,#03060b 100%);font:13px Arial,sans-serif;overflow:hidden;display:none;grid-template-rows:auto auto minmax(0,1fr) auto;gap:10px}
+#library.show{display:grid}
+#library .libhead{margin:0;min-width:0}
+#library .browserTop{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;border:1px solid #38577c;border-radius:10px;background:linear-gradient(180deg,#263a55,#0a1322);box-shadow:inset 0 1px #ffffff25,0 5px 16px #0009}
+#library .browserBrand{font-size:clamp(16px,2.1vw,24px);font-weight:900;letter-spacing:.08em;color:#f4f8ff;white-space:nowrap}
+#library .browserBrand em{font-style:normal;color:#37a0ff}
+#library .browserActions{display:flex;gap:7px;align-items:center}
+#library .libaction{padding:9px 12px;border:1px solid #506681;border-radius:7px;background:linear-gradient(#34465f,#111d2d);color:#f4f8ff;font-weight:700;box-shadow:inset 0 1px #ffffff22,0 2px 4px #0009}
+#library .libaction:active{transform:translateY(1px)}
+#library #libsearch{min-width:0;width:100%;padding:12px 14px;border-radius:8px;border:1px solid #536b88;background:#080f1b;color:white;font-size:14px;box-shadow:inset 0 2px 7px #000}
+#library .browserToolbar{display:grid;grid-template-columns:minmax(180px,1fr) auto;gap:9px;align-items:center}
+#library .browserMain{display:grid;grid-template-columns:minmax(145px,19%) minmax(0,1fr) minmax(150px,18%);gap:9px;min-height:0}
+#library .browserSide,#library .browserTracks,#library .browserPreview{min-height:0;border:1px solid #344d6b;border-radius:10px;background:linear-gradient(145deg,#121e30,#070c15);box-shadow:inset 0 1px #ffffff18,0 4px 12px #0008;overflow:hidden}
+#library .browserSide{display:flex;flex-direction:column;padding:7px;gap:5px}
+#library .browserSection{padding:8px 9px;color:#8fa9c8;font-size:10px;font-weight:800;letter-spacing:.15em}
+#library .browserSide button{display:flex;align-items:center;gap:9px;width:100%;padding:10px 9px;border:1px solid transparent;border-radius:7px;background:transparent;color:#dce8f7;text-align:left;font-weight:700}
+#library .browserSide button.active{background:linear-gradient(90deg,#1558a8,#102c4b);border-color:#388dff;box-shadow:0 0 12px #167cff55;color:white}
+#library .browserTracks{display:flex;flex-direction:column}
+#library .browserTableHead{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.4fr) minmax(0,1.4fr) 58px 54px 62px 104px;gap:5px;padding:10px 9px;background:linear-gradient(#273b55,#142338);border-bottom:1px solid #46617f;color:#bcd1e9;font-size:11px;font-weight:800;letter-spacing:.04em}
+#library #liblist{display:flex;flex-direction:column;gap:0;overflow:auto;min-height:0;overscroll-behavior:contain}
+#library .trackrow{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.4fr) minmax(0,1.4fr) 58px 54px 62px 104px;gap:5px;align-items:center;padding:9px;border:0;border-bottom:1px solid #25364b;border-radius:0;background:linear-gradient(90deg,#111b2a,#0a111c);color:#e8f1fb;min-height:43px}
+#library .trackrow:nth-child(even){background:linear-gradient(90deg,#172337,#0d1725)}
+#library .trackrow.selected{background:linear-gradient(90deg,#075fc9,#12417c);box-shadow:inset 3px 0 #54b4ff,inset 0 0 14px #62baff22}
+#library .trackrow .trackTitle{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#library .trackrow .trackArtist,#library .trackrow .trackAlbum{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#c1d0e2}
+#library .trackrow .trackNum{text-align:center;font-variant-numeric:tabular-nums}
+#library .trackrow .trackKey{color:#f0d45c;text-align:center;font-weight:800}
+#library .trackrow .trackActions{display:flex;gap:4px;justify-content:flex-end}
+#library .trackrow .trackActions button{padding:6px 7px;border:1px solid #438ee0;border-radius:5px;background:#102b4b;color:#fff;font-size:10px;font-weight:800}
+#library .browserPreview{display:flex;flex-direction:column;padding:10px;gap:9px}
+#library .previewTitle{font-size:12px;font-weight:900;letter-spacing:.1em;color:#b9d8ff}
+#library .previewArt{display:flex;align-items:center;justify-content:center;min-height:90px;flex:1;border:1px solid #3b5a7e;border-radius:8px;background:radial-gradient(circle at 50% 40%,#244d7c,#0a1424 70%);font-size:44px;color:#8bc7ff}
+#library .previewTrack{font-size:15px;font-weight:900;color:#fff;overflow-wrap:anywhere}
+#library .previewMeta{font-size:11px;color:#9fb5d0;line-height:1.5}
+#library .previewStats{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#library .previewStats div{padding:7px 5px;border:1px solid #344b68;border-radius:6px;background:#0b1421;text-align:center;color:#8fa9c8;font-size:9px}
+#library .previewStats strong{display:block;margin-top:3px;color:#f2f7ff;font-size:14px}
+#library .browserBottom{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#91a9c6;font-size:10px}
+#library .browserBottom .libfoot{margin:0}
+@media(max-width:680px){#library .browserMain{grid-template-columns:112px minmax(0,1fr)}#library .browserPreview{display:none}#library .browserTableHead,#library .trackrow{grid-template-columns:minmax(0,2fr) minmax(0,1.2fr) 46px 42px 58px 92px}#library .browserTableHead .albumCol,#library .trackrow .trackAlbum{display:none}#library .browserBrand{font-size:15px}#library .browserActions .libaction{padding:8px;font-size:10px}#library .browserSide button{padding:8px 5px;font-size:11px}}
+@media(max-width:420px){#library .browserMain{grid-template-columns:88px minmax(0,1fr)}#library .browserTableHead,#library .trackrow{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr) 40px 38px 76px}#library .artistCol,#library .trackArtist{display:none}#library .trackrow{padding:8px 5px}#library .browserTableHead{padding:8px 5px;font-size:9px}}
+
 </style></head><body>
 <div id="splash" aria-label="BQ DJ LIVE · sello animado"><div class="stampRing" aria-hidden="true"></div><div class="stampImpact" aria-hidden="true"></div><div class="brandReveal"><svg id="splashLogo" viewBox="0 0 260 220" role="img" aria-label="BQ DJ LIVE logo"><defs><linearGradient id="bqg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset=".48" stop-color="#8dc5ff"/><stop offset="1" stop-color="#7957ff"/></linearGradient></defs><circle cx="130" cy="104" r="91" fill="none" stroke="#286dff" stroke-width="2" opacity=".8"/><circle cx="130" cy="104" r="82" fill="#090d18" stroke="#8c63ff" stroke-width="1.5"/><text x="130" y="143" text-anchor="middle" font-family="Arial,sans-serif" font-size="104" font-weight="900" letter-spacing="-10" fill="url(#bqg)">BQ</text></svg><div id="splashTitle">BQ DJ LIVE</div><div id="splashSub">PRO DJ SYSTEM</div></div><button id="skipSplash" type="button" aria-label="Omitir presentación">OMITIR</button></div><div class="top" id="msg"></div><div id="appTools"><button id="recToggle" type="button">● REC</button><span id="localClock" title="Toca para cambiar formato">--:--</span><button id="lockUi" type="button">🔓 Bloquear</button><button id="displaySize" type="button">⛶ Tamaño</button><select id="coverSize" aria-label="Tamaño de controladora"><option value="small">PEQUEÑO</option><option value="medium">NORMAL</option><option value="large">GRANDE</option></select><button id="ultra3dToggle" type="button" aria-pressed="false">ULTRA 3D</button><button id="coverBg" type="button">FONDO: NEGRO</button></div>
 <div id="wrap"><div id="st"></div></div>
@@ -309,7 +353,16 @@ body.ultra-3d-mode .bt.cue,body.ultra-3d-mode .bt.pl{transform:none}
 <div class="drAmpLevel"><label for="drHighLevel">MID / HIGH · MEDIOS + BRILLO</label><div class="drAmpTrack"><i id="drHighLevel"></i></div><output id="drHighDb">−∞ dB</output></div>
 </div>
 <div id="drFoot"><span>INPUT L/R · 6 OUTPUT CHANNELS</span><span>LOW / MID / HIGH · SIX INDEPENDENT DSP CHANNELS</span><span id="drStatus">PROCESSOR BYPASS · ORIGINAL SIGNAL</span></div>
-</section><section id="sourceAssistPanel" aria-label="Fuente de audio y SMART AUDIO ASSIST"><h3>FUENTE DE AUDIO</h3><div id="sourceChoices"><button type="button" class="sourceChoice active" data-source="phone">📱 MODO CELULAR</button><button type="button" class="sourceChoice" data-source="headphones">🎧 AUDÍFONOS</button><button type="button" class="sourceChoice" data-source="bluetooth">ᛒ BLUETOOTH</button></div><div id="sourceHelp">Modo celular: canales combinados. Para audífonos o Bluetooth puedes elegir el modo de canales.</div><div id="channelChoices"><button type="button" class="channelChoice active" data-channel="combined">CANALES COMBINADOS</button><button type="button" class="channelChoice" data-channel="stereo">SEPARACIÓN L/R · BAJOS L / MEDIOS + AGUDOS R</button></div><div id="smartAssistBar"><span aria-hidden="true">🎙</span><div><strong style="font-size:10px">SMART AUDIO ASSIST</strong><div id="smartAssistStatus">MICRÓFONO · ESPERANDO PERMISO</div></div><button type="button" id="smartAssistToggle">MIC ON</button></div><div id="smartAssistMessages" aria-live="polite">Análisis acústico y recomendaciones discretas aparecerán aquí.</div></section><button id="proClose">Cerrar menú</button></div></div><div id="library"><div class="libhead"><strong style="font-size:20px">BQ DJ LIVE · BIBLIOTECA</strong><button class="libaction" id="libclose">Cerrar ✕</button></div><div class="libhead"><input id="libsearch" placeholder="Buscar canción, artista o archivo…"><button class="libaction" id="libadd">＋ Añadir música</button><button class="libaction" id="libfolder">＋ Añadir carpeta</button></div><div class="libtabs" id="libtabs"></div><div id="liblist"></div><div class="libfoot"><small>La biblioteca muestra la música local del teléfono y permite cargar cada pista en Deck 1 o Deck 2.</small></div></div>
+</section><section id="sourceAssistPanel" aria-label="Fuente de audio y SMART AUDIO ASSIST"><h3>FUENTE DE AUDIO</h3><div id="sourceChoices"><button type="button" class="sourceChoice active" data-source="phone">📱 MODO CELULAR</button><button type="button" class="sourceChoice" data-source="headphones">🎧 AUDÍFONOS</button><button type="button" class="sourceChoice" data-source="bluetooth">ᛒ BLUETOOTH</button></div><div id="sourceHelp">Modo celular: canales combinados. Para audífonos o Bluetooth puedes elegir el modo de canales.</div><div id="channelChoices"><button type="button" class="channelChoice active" data-channel="combined">CANALES COMBINADOS</button><button type="button" class="channelChoice" data-channel="stereo">SEPARACIÓN L/R · BAJOS L / MEDIOS + AGUDOS R</button></div><div id="smartAssistBar"><span aria-hidden="true">🎙</span><div><strong style="font-size:10px">SMART AUDIO ASSIST</strong><div id="smartAssistStatus">MICRÓFONO · ESPERANDO PERMISO</div></div><button type="button" id="smartAssistToggle">MIC ON</button></div><div id="smartAssistMessages" aria-live="polite">Análisis acústico y recomendaciones discretas aparecerán aquí.</div></section><button id="proClose">Cerrar menú</button></div></div><div id="library">
+<div class="browserTop"><div class="browserBrand">BQ <em>DJ LIVE</em> · BROWSER</div><div class="browserActions"><button class="libaction" id="browserInternet" type="button">🌐 INTERNET</button><button class="libaction" id="libclose" type="button">CERRAR ✕</button></div></div>
+<div class="browserToolbar"><input id="libsearch" placeholder="⌕  Buscar canciones, artistas, álbumes…"><div class="browserActions"><button class="libaction" id="libadd" type="button">＋ Música</button><button class="libaction" id="libfolder" type="button">＋ Carpeta</button></div></div>
+<div class="browserMain">
+<aside class="browserSide"><div class="browserSection">COLECCIÓN</div><button type="button" class="active" data-libtab="Todas">♫ Todas las canciones</button><button type="button" data-libtab="Listas">☷ Listas</button><button type="button" data-libtab="Géneros">◉ Géneros</button><button type="button" data-libtab="Artistas">♙ Artistas</button><button type="button" data-libtab="Álbumes">▣ Álbumes</button><button type="button" data-libtab="Carpetas">▰ Carpetas</button><div class="browserSection">DISPOSITIVOS</div><button type="button" data-libtab="USB">▤ USB</button><button type="button" data-libtab="SD">▣ SD</button><button type="button" data-libtab="Descargas">⇩ Descargas</button></aside>
+<section class="browserTracks"><div class="browserTableHead"><span>TÍTULO</span><span class="artistCol">ARTISTA</span><span class="albumCol">ÁLBUM</span><span>BPM</span><span>KEY</span><span>DUR.</span><span>CARGAR</span></div><div id="liblist"></div></section>
+<aside class="browserPreview"><div class="previewTitle">VISTA PREVIA</div><div class="previewArt" id="browserPreviewArt">♫</div><div class="previewTrack" id="browserPreviewTitle">Selecciona una canción</div><div class="previewMeta" id="browserPreviewArtist">Biblioteca musical local</div><div class="previewStats"><div>BPM<strong id="browserPreviewBpm">—</strong></div><div>KEY<strong id="browserPreviewKey">—</strong></div></div><button class="libaction" id="browserPreviewPlay" type="button">▶ PREESCUCHA</button></aside>
+</div>
+<div class="browserBottom"><div class="libfoot"><small>Selecciona una pista y cárgala en Deck 1 o Deck 2; la música que está sonando no se interrumpe.</small></div><small id="browserCount">Biblioteca local</small></div>
+</div>
 <script>
 const $=s=>document.querySelector(s),S=$('#st');let SC=1,zoom=1,ctx,M={},tgt=0,uiLocked=false,clock24=true;const reg=[];const AMP_CFG_KEY='SC2_AMP_CFG';let driverRackOn=false;try{driverRackOn=localStorage.getItem('SC2_DRIVERACK_ON')==='1'}catch(e){}let ampCfg={lowOn:true,highOn:true,lowVolume:.75,highVolume:.75,bass:0,midBass:0,mid:0,treble:0,bassCut:false,midBassCut:false,midCut:false,trebleCut:false};
 const DR_CFG_KEY='SC2_DRIVERACK_260';
@@ -478,17 +531,44 @@ function loadEqPreset(i){const p=eqPresetSlots[i];if(!p){$('#eqPresetStatus').te
 document.querySelectorAll('[data-eq-save]').forEach(b=>b.onclick=()=>saveEqPreset(Number(b.dataset.eqSave)));document.querySelectorAll('[data-eq-load]').forEach(b=>b.onclick=()=>loadEqPreset(Number(b.dataset.eqLoad)));renderEqPresetSlots();
 $('#advancedSettingsLock').addEventListener('click',()=>{advancedSettingsLocked=!advancedSettingsLocked;try{localStorage.setItem(ADVANCED_LOCK_KEY,advancedSettingsLocked?'1':'0')}catch(e){}renderAdvancedToggles();msg(advancedSettingsLocked?'Ajustes internos bloqueados: no se pueden mover los controles':'Ajustes internos desbloqueados: modifica solo lo necesario')});['advLow','advMid','advHigh','advLimit','advRatio','advSat'].forEach(id=>{ $('#'+id).addEventListener('input',applyAdvanced);$('#'+id+'Toggle').addEventListener('click',()=>setAdvancedEnabled(id,!advancedEnabled[id])) });renderAdvancedToggles();
 function makeSatCurve(amount){const n=256,c=new Float32Array(n),k=amount*30;for(let i=0;i<n;i++){const x=i*2/(n-1)-1;c[i]=k?Math.tanh(x*(1+k))/Math.tanh(1+k):x}return c;}
-function renderLibrary(){const tabs=['Todas','Álbumes','Artistas','Carpetas','Descargas'];$('#libtabs').innerHTML='';tabs.forEach(t=>{const b=document.createElement('button');b.className='libtab'+(libTab===t?' active':'');b.textContent=t;b.onclick=()=>{libTab=t;renderLibrary()};$('#libtabs').appendChild(b)});
- const q=$('#libsearch').value.toLowerCase(),list=$('#liblist');list.innerHTML='';
- const visibleNative=nativeTracks.filter(t=>(String(t.title||'')+' '+String(t.artist||'')+' '+String(t.album||'')).toLowerCase().includes(q));
- visibleNative.forEach(track=>{const row=document.createElement('div');row.className='trackrow';const info=document.createElement('div');info.innerHTML='<strong></strong><small></small>';info.firstChild.textContent=track.title||'Audio sin título';info.lastChild.textContent=(track.artist&&track.artist!=='<unknown>'?track.artist+' · ':'')+(track.album||'Música del teléfono')+' · '+Math.round((track.duration||0)/60000)+' min';const actions=document.createElement('div');[0,1].forEach(i=>{const b=document.createElement('button');b.className='libaction';b.textContent='Deck '+(i+1);b.onclick=()=>loadNativeTrack(track,i);actions.appendChild(b)});row.append(info,actions);list.appendChild(row)});
+let selectedBrowserTrack=null;
+function fmtTrackDuration(ms){const sec=Math.max(0,Math.round((Number(ms)||0)/1000));return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
+function renderLibrary(){
+ const q=($('#libsearch').value||'').toLowerCase().trim(),list=$('#liblist');list.innerHTML='';
+ const native= nativeTracks.filter(t=>(String(t.title||'')+' '+String(t.artist||'')+' '+String(t.album||'')).toLowerCase().includes(q));
  let files=library.filter(f=>f.name.toLowerCase().includes(q));
  if(libTab==='Descargas')files=files.filter(f=>/download|descarga/i.test(f.webkitRelativePath||f.name));
  if(libTab==='Carpetas')files=files.filter(f=>(f.webkitRelativePath||'').includes('/'));
- if(libTab==='Álbumes'||libTab==='Artistas'){const seen=new Set();files=files.filter(f=>{const k=(f.webkitRelativePath||f.name).split('/').slice(0,-1).join('/')||f.name.replace(/\.[^.]+$/,'');if(seen.has(k))return false;seen.add(k);return true})}
- if(!files.length&&!visibleNative.length){list.innerHTML='<div style="color:#9da8bd;padding:16px">No se encontraron canciones. Comprueba el permiso de música del teléfono.</div>';return}
- files.forEach(f=>{const row=document.createElement('div');row.className='trackrow';const info=document.createElement('div');info.innerHTML='<strong></strong><small></small>';info.firstChild.textContent=f.name;info.lastChild.textContent=(f.webkitRelativePath||'Archivo local')+' · '+(f.size/1048576).toFixed(1)+' MB';const actions=document.createElement('div');[0,1].forEach(i=>{const b=document.createElement('button');b.className='libaction';b.textContent='Deck '+(i+1);b.onclick=async()=>{const ok=await load(f,i);if(ok)lib.classList.remove('show')};actions.appendChild(b)});row.append(info,actions);list.appendChild(row)})}
-$('#libclose').onclick=()=>lib.classList.remove('show');$('#libadd').onclick=()=>$('#file').click();$('#libfolder').onclick=()=>$('#folderfile').click();$('#folderfile').onchange=e=>addLibraryFiles(e.target.files);$('#file').addEventListener('change',e=>addLibraryFiles(e.target.files));$('#libsearch').oninput=renderLibrary;
+ const all=[...native.map(track=>({kind:'native',item:track})),...files.map(file=>({kind:'file',item:file}))];
+ $('#browserCount').textContent=all.length+' pistas visibles';
+ document.querySelectorAll('[data-libtab]').forEach(b=>b.classList.toggle('active',b.dataset.libtab===libTab));
+ if(!all.length){list.innerHTML='<div style="padding:22px;color:#a9bdd5">No hay canciones para mostrar. Concede permiso de música o añade archivos locales.</div>';return}
+ all.forEach((entry,index)=>{
+  const item=entry.item,isNative=entry.kind==='native';
+  const title=isNative?(item.title||'Audio sin título'):item.name.replace(/\\.[^.]+$/,'');
+  const artist=isNative&&item.artist&&item.artist!=='<unknown>'?item.artist:'—';
+  const album=isNative&&item.album&&item.album!=='<unknown>'?item.album:(isNative?'Música del teléfono':'Archivo local');
+  const bpm=Number(item.bpm)>0?Number(item.bpm).toFixed(1):'—';
+  const key=item.key||item.musicalKey||'—';
+  const duration=isNative?fmtTrackDuration(item.duration):'—';
+  const row=document.createElement('div');row.className='trackrow'+(selectedBrowserTrack===entry?' selected':'');
+  const cells=[['trackTitle',title],['trackArtist artistCol',artist],['trackAlbum albumCol',album],['trackNum',bpm],['trackKey',key],['trackNum',duration]];
+  cells.forEach(([cls,value])=>{const cell=document.createElement('span');cell.className=cls;cell.textContent=value;row.appendChild(cell)});
+  const actions=document.createElement('div');actions.className='trackActions';
+  [0,1].forEach(deck=>{const b=document.createElement('button');b.type='button';b.textContent='DECK '+(deck+1);b.onclick=async ev=>{ev.stopPropagation();if(isNative)await loadNativeTrack(item,deck);else{const ok=await load(item,deck);if(ok)lib.classList.remove('show')}};actions.appendChild(b)});
+  row.appendChild(actions);row.onclick=()=>{selectedBrowserTrack=entry;updateBrowserPreview(entry);renderLibrary()};list.appendChild(row);
+ });
+ if(!selectedBrowserTrack||!all.includes(selectedBrowserTrack)){selectedBrowserTrack=all[0];updateBrowserPreview(selectedBrowserTrack)}
+}
+function updateBrowserPreview(entry){
+ if(!entry)return;const item=entry.item,isNative=entry.kind==='native';
+ $('#browserPreviewTitle').textContent=isNative?(item.title||'Audio sin título'):item.name.replace(/\\.[^.]+$/,'');
+ $('#browserPreviewArtist').textContent=isNative?(item.artist&&item.artist!=='<unknown>'?item.artist+' · ':'')+(item.album||'Música del teléfono'):'Archivo local · '+((item.webkitRelativePath||'').split('/').slice(-2,-1)[0]||'Archivos');
+ $('#browserPreviewBpm').textContent=Number(item.bpm)>0?Number(item.bpm).toFixed(1):'—';
+ $('#browserPreviewKey').textContent=item.key||item.musicalKey||'—';
+}
+document.querySelectorAll('[data-libtab]').forEach(b=>b.onclick=()=>{libTab=b.dataset.libtab;selectedBrowserTrack=null;renderLibrary()});
+$('#libclose').onclick=()=>lib.classList.remove('show');$('#libadd').onclick=()=>$('#file').click();$('#libfolder').onclick=()=>$('#folderfile').click();$('#folderfile').onchange=e=>addLibraryFiles(e.target.files);$('#file').addEventListener('change',e=>addLibraryFiles(e.target.files));$('#libsearch').oninput=()=>{selectedBrowserTrack=null;renderLibrary()};$('#browserInternet').onclick=()=>openOnlineBrowser();$('#browserPreviewPlay').onclick=()=>msg('La preescucha se habilitará cuando la pista tenga fuente de audio preparada.');
 
 /* ---------- controles ---------- */
 function btn(x,y,w,h,t,c,dn,up){const e=el('bt '+(c||''),x-w/2,y-h/2,w,h,t);e.onpointerdown=v=>{v.preventDefault();e.setPointerCapture(v.pointerId);e.classList.add('dn');init();dn&&dn(e)};e.onpointerup=e.onpointercancel=()=>{if(!e.classList.contains('dn'))return;e.classList.remove('dn');up&&up(e)};return e}
