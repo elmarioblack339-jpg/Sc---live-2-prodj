@@ -1,7 +1,7 @@
 name: Build BQ DJ LIVE v257 Browser
 on:
   push:
-    branches: [feature/denon-browser-library]
+    branches: [feature/bq-browser-standalone]
   workflow_dispatch:
 permissions:
   contents: read
@@ -56,6 +56,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: BQ-DJ-LIVE-v257-Browser
+          name: BQ-DJ-LIVE-v257-Standalone
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
