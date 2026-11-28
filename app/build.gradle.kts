@@ -21,7 +21,7 @@ android {
     }
     defaultConfig {
         // Independent test package: keeps the existing tuned installation untouched.
-        applicationId = "com.sclive2.dj.audiofix247"
+        applicationId = "com.sclive2.dj.audiofix257"
         minSdk = 26
         targetSdk = 35
         versionCode = 257
