@@ -1,0 +1,61 @@
+name: Build BQ DJ LIVE v257 Denon Browser
+on:
+  push:
+    branches: [feature/denon-browser-library]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools
+      - name: Install pinned NDK and CMake
+        run: |
+          sdkmanager --install "ndk;27.2.12479018" "cmake;3.22.1"
+      - name: Fetch pinned Demucs Android engine and Eigen
+        run: |
+          mkdir -p third_party
+          git clone https://github.com/jPaauwe/demucs-android.git third_party/demucs-android
+          git -C third_party/demucs-android checkout f4bc42b6c209beea2aa4a04d37c75cd06b0c90d2
+          git -C third_party/demucs-android submodule update --init --recursive
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Restore debug signing key
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: bq-dj-live-debug-keystore-v1
+      - name: Ensure debug signing key exists
+        run: |
+          mkdir -p "$HOME/.android"
+          if [ ! -s "$HOME/.android/debug.keystore" ]; then
+            keytool -genkeypair -noprompt -v -keystore "$HOME/.android/debug.keystore" -storepass android -alias AndroidDebugKey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          fi
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Validate embedded JavaScript
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html=Path("app/src/main/assets/index.html").read_text(encoding="utf-8")
+          scripts=re.findall(r"<script(?:\\s[^>]*)?>(.*?)</script>",html,flags=re.S)
+          if not scripts: raise SystemExit("No inline JavaScript")
+          Path("/tmp/bq-inline.js").write_text("\\n".join(scripts),encoding="utf-8")
+          PY
+          node --check /tmp/bq-inline.js
+      - name: Build debug APK
+        run: gradle --no-daemon --refresh-dependencies assembleDebug
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: BQ-DJ-LIVE-v257-Denon-Browser
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
