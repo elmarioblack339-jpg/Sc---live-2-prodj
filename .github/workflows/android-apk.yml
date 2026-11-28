@@ -5,7 +5,7 @@ name: Build BQ DJ LIVE APK
 # Includes isolated audio-recovery package for side-by-side testing
 on:
   push:
-    branches: [sc-live2-build, sc-live2-rebuild-clean, sc-live2-punto-gasolina, sc-live2-rank-stems-browser-rec, sc-live2-audio-recovery-test, sc-live2-audio-recovery-newapp, bq-dj-live-rebrand, bq-dj-live-ultra3d]
+    branches: [sc-live2-build, sc-live2-rebuild-clean, sc-live2-punto-gasolina, sc-live2-rank-stems-browser-rec, sc-live2-audio-recovery-test, sc-live2-audio-recovery-newapp, bq-dj-live-rebrand, bq-dj-live-ultra3d, test/four-logical-decks]
   workflow_dispatch:
 permissions:
   contents: read
