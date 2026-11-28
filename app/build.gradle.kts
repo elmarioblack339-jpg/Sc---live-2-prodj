@@ -25,7 +25,7 @@ android {
         minSdk = 26
         targetSdk = 35
         versionCode = 257
-        versionName = "257-bq-denon-browser"
+        versionName = "257-bq-live-browser"
         // Visual refresh is capped at 30 FPS to reduce main-thread pressure during deck playback.
         // Package both 32-bit and 64-bit ARM so older phones can install the DJ app.
         // The RANK engine runs only on Android 10+ arm64 devices.
