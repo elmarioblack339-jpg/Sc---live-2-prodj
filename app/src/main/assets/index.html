@@ -526,7 +526,7 @@ function deck(i){const o=i*582,d=panelDeck(i);
  mn.forEach((t,k)=>{mbs[k]=btn(o+mx[k],502,23,14,t,k==1?'on':'',()=>{if(k==0)d.sh=1;else if(k<5){d.mode=mm[k];mbs.forEach((b,j)=>j>0&&j<5&&b.classList.toggle('on',j==k));padsUI(d)}else if(k===5)selectLogicalDeck(i,i);else if(k===6)selectLogicalDeck(i,i+2)},()=>{if(k==0)d.sh=0})});
  const del=btn(o+292,502,28,14,'DEL','',()=>{if(d.mode==='rank'){if(d.auxSrc){try{d.auxSrc.stop()}catch(e){}d.auxSrc=null}d.auxBuf=null;d.auxName='';msg('Audio adicional del Deck '+(d.i+1)+' eliminado');return}if(d.mode!=='cue'){msg('Cambia a modo CUE para borrar Hot Cues');return}if(!d.buf){msg('Carga una canción antes de borrar Hot Cues');return}d.deleteMode=!d.deleteMode;del.classList.toggle('on',d.deleteMode);msg(d.deleteMode?'DEL activo: toca el Hot Cue que deseas borrar':'Borrado de Hot Cue cancelado')});
  [125,170,213,255].forEach((x,k)=>{d.pads[k]=btn(o+x,534,38,28,'','pad',()=>{if(d.deleteMode){if(d.hot[k]==null){msg('El Hot Cue '+(k+1)+' ya está vacío');return}d.hot[k]=null;saveHotCues(d);d.deleteMode=false;del.classList.remove('on');padsUI(d);msg('Hot Cue '+(k+1)+' eliminado del Deck '+(d.i+1));return}pad(d,k)},()=>padUp(d))});
- el('tt',o+178,200,0,0,'DECK '+(d.i+1));deckPanels[i]={pl:d.pl,rg:d.rg,pb:d.pb,jg:d.jg,pf:d.pf,pads:d.pads,repeatBtn:d.repeatBtn,shuffleBtn:d.shuffleBtn,continuousBtn:d.continuousBtn,vinBtn:d.vinBtn,modeButtons:mbs};
+ const panelTitle=el('tt',o+178,200,0,0,'DECK '+(d.i+1));panelTitle.dataset.deckPanel=String(i);deckPanels[i]={pl:d.pl,rg:d.rg,pb:d.pb,jg:d.jg,pf:d.pf,pads:d.pads,repeatBtn:d.repeatBtn,shuffleBtn:d.shuffleBtn,continuousBtn:d.continuousBtn,vinBtn:d.vinBtn,modeButtons:mbs};
 }
 function chrome(){
  el('gr',13,88,277,102,'');el('gr',667,88,277,102,'');el('bd',12,87,933,476,'');
