@@ -24,8 +24,8 @@ android {
         applicationId = "com.sclive2.dj.audiofix247"
         minSdk = 26
         targetSdk = 35
-        versionCode = 256
-        versionName = "256-bq-live-touch-seek"
+        versionCode = 257
+        versionName = "257-four-decks-browser"
         // Visual refresh is capped at 30 FPS to reduce main-thread pressure during deck playback.
         // Package both 32-bit and 64-bit ARM so older phones can install the DJ app.
         // The RANK engine runs only on Android 10+ arm64 devices.
