@@ -359,7 +359,7 @@ body.ultra-3d-mode .bt.cue,body.ultra-3d-mode .bt.pl{transform:none}
 <div class="browserMain">
 <aside class="browserSide"><div class="browserSection">COLECCIÓN</div><button type="button" class="active" data-libtab="Todas">♫ Todas las canciones</button><button type="button" data-libtab="Listas">☷ Listas</button><button type="button" data-libtab="Géneros">◉ Géneros</button><button type="button" data-libtab="Artistas">♙ Artistas</button><button type="button" data-libtab="Álbumes">▣ Álbumes</button><button type="button" data-libtab="Carpetas">▰ Carpetas</button><div class="browserSection">DISPOSITIVOS</div><button type="button" data-libtab="USB">▤ USB</button><button type="button" data-libtab="SD">▣ SD</button><button type="button" data-libtab="Descargas">⇩ Descargas</button></aside>
 <section class="browserTracks"><div class="browserTableHead"><span>TÍTULO</span><span class="artistCol">ARTISTA</span><span class="albumCol">ÁLBUM</span><span>BPM</span><span>KEY</span><span>DUR.</span><span>CARGAR</span></div><div id="liblist"></div></section>
-<aside class="browserPreview"><div class="previewTitle">VISTA PREVIA</div><div class="previewArt" id="browserPreviewArt">♫</div><div class="previewTrack" id="browserPreviewTitle">Selecciona una canción</div><div class="previewMeta" id="browserPreviewArtist">Biblioteca musical local</div><div class="previewStats"><div>BPM<strong id="browserPreviewBpm">—</strong></div><div>KEY<strong id="browserPreviewKey">—</strong></div></div><button class="libaction" id="browserPreviewPlay" type="button">▶ PREESCUCHA</button></aside>
+<aside class="browserPreview"><div class="previewTitle">VISTA PREVIA</div><div class="previewArt" id="browserPreviewArt">♫</div><div class="previewTrack" id="browserPreviewTitle">Selecciona una canción</div><div class="previewMeta" id="browserPreviewArtist">Biblioteca musical local</div><div class="previewStats"><div>BPM<strong id="browserPreviewBpm">—</strong></div><div>KEY<strong id="browserPreviewKey">—</strong></div></div></aside>
 </div>
 <div class="browserBottom"><div class="libfoot"><small>Selecciona una pista y cárgala en Deck 1 o Deck 2; la música que está sonando no se interrumpe.</small></div><small id="browserCount">Biblioteca local</small></div>
 </div>
@@ -531,7 +531,7 @@ function loadEqPreset(i){const p=eqPresetSlots[i];if(!p){$('#eqPresetStatus').te
 document.querySelectorAll('[data-eq-save]').forEach(b=>b.onclick=()=>saveEqPreset(Number(b.dataset.eqSave)));document.querySelectorAll('[data-eq-load]').forEach(b=>b.onclick=()=>loadEqPreset(Number(b.dataset.eqLoad)));renderEqPresetSlots();
 $('#advancedSettingsLock').addEventListener('click',()=>{advancedSettingsLocked=!advancedSettingsLocked;try{localStorage.setItem(ADVANCED_LOCK_KEY,advancedSettingsLocked?'1':'0')}catch(e){}renderAdvancedToggles();msg(advancedSettingsLocked?'Ajustes internos bloqueados: no se pueden mover los controles':'Ajustes internos desbloqueados: modifica solo lo necesario')});['advLow','advMid','advHigh','advLimit','advRatio','advSat'].forEach(id=>{ $('#'+id).addEventListener('input',applyAdvanced);$('#'+id+'Toggle').addEventListener('click',()=>setAdvancedEnabled(id,!advancedEnabled[id])) });renderAdvancedToggles();
 function makeSatCurve(amount){const n=256,c=new Float32Array(n),k=amount*30;for(let i=0;i<n;i++){const x=i*2/(n-1)-1;c[i]=k?Math.tanh(x*(1+k))/Math.tanh(1+k):x}return c;}
-let selectedBrowserTrack=null;
+let selectedBrowserTrackKey='';
 function fmtTrackDuration(ms){const sec=Math.max(0,Math.round((Number(ms)||0)/1000));return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
 function renderLibrary(){
  const q=($('#libsearch').value||'').toLowerCase().trim(),list=$('#liblist');list.innerHTML='';
@@ -551,14 +551,14 @@ function renderLibrary(){
   const bpm=Number(item.bpm)>0?Number(item.bpm).toFixed(1):'—';
   const key=item.key||item.musicalKey||'—';
   const duration=isNative?fmtTrackDuration(item.duration):'—';
-  const row=document.createElement('div');row.className='trackrow'+(selectedBrowserTrack===entry?' selected':'');
+  const row=document.createElement('div');const entryKey=isNative?'native:'+String(item.uri||item.title||index):'file:'+String(item.name)+'|'+String(item.size);row.className='trackrow'+(selectedBrowserTrackKey===entryKey?' selected':'');
   const cells=[['trackTitle',title],['trackArtist artistCol',artist],['trackAlbum albumCol',album],['trackNum',bpm],['trackKey',key],['trackNum',duration]];
   cells.forEach(([cls,value])=>{const cell=document.createElement('span');cell.className=cls;cell.textContent=value;row.appendChild(cell)});
   const actions=document.createElement('div');actions.className='trackActions';
   [0,1].forEach(deck=>{const b=document.createElement('button');b.type='button';b.textContent='DECK '+(deck+1);b.onclick=async ev=>{ev.stopPropagation();if(isNative)await loadNativeTrack(item,deck);else{const ok=await load(item,deck);if(ok)lib.classList.remove('show')}};actions.appendChild(b)});
-  row.appendChild(actions);row.onclick=()=>{selectedBrowserTrack=entry;updateBrowserPreview(entry);renderLibrary()};list.appendChild(row);
+  row.appendChild(actions);row.onclick=()=>{selectedBrowserTrackKey=entryKey;updateBrowserPreview(entry);renderLibrary()};list.appendChild(row);
  });
- if(!selectedBrowserTrack||!all.includes(selectedBrowserTrack)){selectedBrowserTrack=all[0];updateBrowserPreview(selectedBrowserTrack)}
+ const selected=all.find(entry=>{const item=entry.item;return selectedBrowserTrackKey===(entry.kind==='native'?'native:'+String(item.uri||item.title||''):'file:'+String(item.name)+'|'+String(item.size))})||all[0];if(selected){const item=selected.item;selectedBrowserTrackKey=selected.kind==='native'?'native:'+String(item.uri||item.title||''):'file:'+String(item.name)+'|'+String(item.size);updateBrowserPreview(selected)}
 }
 function updateBrowserPreview(entry){
  if(!entry)return;const item=entry.item,isNative=entry.kind==='native';
@@ -567,8 +567,8 @@ function updateBrowserPreview(entry){
  $('#browserPreviewBpm').textContent=Number(item.bpm)>0?Number(item.bpm).toFixed(1):'—';
  $('#browserPreviewKey').textContent=item.key||item.musicalKey||'—';
 }
-document.querySelectorAll('[data-libtab]').forEach(b=>b.onclick=()=>{libTab=b.dataset.libtab;selectedBrowserTrack=null;renderLibrary()});
-$('#libclose').onclick=()=>lib.classList.remove('show');$('#libadd').onclick=()=>$('#file').click();$('#libfolder').onclick=()=>$('#folderfile').click();$('#folderfile').onchange=e=>addLibraryFiles(e.target.files);$('#file').addEventListener('change',e=>addLibraryFiles(e.target.files));$('#libsearch').oninput=()=>{selectedBrowserTrack=null;renderLibrary()};$('#browserInternet').onclick=()=>openOnlineBrowser();$('#browserPreviewPlay').onclick=()=>msg('La preescucha se habilitará cuando la pista tenga fuente de audio preparada.');
+document.querySelectorAll('[data-libtab]').forEach(b=>b.onclick=()=>{libTab=b.dataset.libtab;selectedBrowserTrackKey='';renderLibrary()});
+$('#libclose').onclick=()=>lib.classList.remove('show');$('#libadd').onclick=()=>$('#file').click();$('#libfolder').onclick=()=>$('#folderfile').click();$('#folderfile').onchange=e=>addLibraryFiles(e.target.files);$('#file').addEventListener('change',e=>addLibraryFiles(e.target.files));$('#libsearch').oninput=()=>{selectedBrowserTrack=null;renderLibrary()};$('#browserInternet').onclick=()=>openOnlineBrowser();
 
 /* ---------- controles ---------- */
 function btn(x,y,w,h,t,c,dn,up){const e=el('bt '+(c||''),x-w/2,y-h/2,w,h,t);e.onpointerdown=v=>{v.preventDefault();e.setPointerCapture(v.pointerId);e.classList.add('dn');init();dn&&dn(e)};e.onpointerup=e.onpointercancel=()=>{if(!e.classList.contains('dn'))return;e.classList.remove('dn');up&&up(e)};return e}
@@ -626,7 +626,7 @@ const body=el('bd',12,87,933,476,'');S.insertBefore(body,S.firstChild);
 const cv=document.createElement('canvas');cv.width=460;cv.height=280;const g2=cv.getContext('2d');const scr=el('screenFrame',39,10,300,165,'',hs);scr.appendChild(cv);
 let screenScrub=null;cv.style.touchAction='none';cv.style.userSelect='none';const screenPoint=e=>{const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*460,y:(e.clientY-r.top)/r.height*280}};const screenSeek=(e)=>{if(!screenScrub||e.pointerId!==screenScrub.pointerId)return;const p=screenPoint(e),d=D[screenScrub.deck],t=Math.max(0,Math.min(1,(p.x-8)/444))*((d.buf&&d.buf.duration)||0);if(d.buf)seek(d,t)};cv.onpointerdown=q=>{const p=screenPoint(q);if(p.x<8||p.x>452){q.preventDefault();return}const bars=[{deck:0,y:58},{deck:1,y:154}].filter(v=>D[v.deck].buf&&p.y>=v.y-5&&p.y<=v.y+6).sort((a,b)=>Math.abs(p.y-a.y)-Math.abs(p.y-b.y));if(bars.length){screenScrub={deck:bars[0].deck,pointerId:q.pointerId};try{cv.setPointerCapture(q.pointerId)}catch(e){}screenSeek(q);q.preventDefault();return}q.preventDefault()};cv.onpointermove=q=>{if(screenScrub&&q.pointerId===screenScrub.pointerId){screenSeek(q);q.preventDefault()}};const endScreenScrub=q=>{if(screenScrub&&q.pointerId===screenScrub.pointerId){screenSeek(q);screenScrub=null}};cv.onpointerup=endScreenScrub;cv.onpointercancel=q=>{if(screenScrub&&q.pointerId===screenScrub.pointerId)screenScrub=null};
 const sideButtons={};[['ACTUALIZAR',62],['MENU',100],['WIFI',124],['LIGHTING',146]].forEach(([t,y])=>{const b=btn(28,y,30,18,t,'',()=>{if(t==='ACTUALIZAR')refreshNativeTracks();if(t==='MENU')showProMenu();if(t==='WIFI'&&window.NativeAudio)NativeAudio.openWifiSettings()});b.style.fontSize=t==='ACTUALIZAR'?'4.5px':'6px';sideButtons[t]=b});
-const backBtn=btn(332,48,22,12,'BACK','',()=>{if(confirm('¿Estás seguro de que deseas salir de BQ DJ LIVE?')){if(window.NativeAudio)NativeAudio.exitApp()}});btn(358,48,22,12,'FWD','',()=>{});const browseKnob=knob(336,100,32,.5,()=>{},'',()=>{if(window.NativeAudio&&NativeAudio.openOnlineBrowser){NativeAudio.openOnlineBrowser()}else{openLibrary(D[0].buf&&!D[1].buf?1:0)}});lb(336,126,'BROWSER · GOOGLE / YOUTUBE');
+const backBtn=btn(332,48,22,12,'BACK','',()=>{if(confirm('¿Estás seguro de que deseas salir de BQ DJ LIVE?')){if(window.NativeAudio)NativeAudio.exitApp()}});btn(358,48,22,12,'FWD','',()=>{});const browseKnob=knob(336,100,32,.5,()=>{},'',()=>{openLibrary(D[0].buf&&!D[1].buf?1:0)});lb(336,126,'BROWSER · BIBLIOTECA MUSICAL');
 el('mx',370,190,202,372,'');
 lb(388,200,'SPEAKER');knob(388,222,20,.7,v=>{if(ctx)M.sp.gain.value=v*1.4});lb(388,238,'LEVEL');btn(418,222,14,18,'','');
 lb(399,252,'MICROPHONE');knob(399,274,24,.5,v=>{M.ml=v;if(ctx&&M.on)M.mic.gain.value=v*1.5});lb(399,291,'LEVEL');
